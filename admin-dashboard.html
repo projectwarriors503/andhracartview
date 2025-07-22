@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .category-card {
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background: white;
+        }
+
+        .sidebar {
+            height: 100vh;
+            background-color: #343a40;
+            color: white;
+            padding: 20px;
+        }
+
+        .sidebar a {
+            color: white;
+            display: block;
+            margin: 10px 0;
+            text-decoration: none;
+        }
+
+        .sidebar a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                height: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-3 sidebar">
+                <h4>Admin Dashboard</h4>
+                <a href="#" onclick="showSection('categorySection')">Manage Categories</a>
+                <a href="#" onclick="showSection('productSection')">All Products</a>
+                <a href="#" onclick="showSection('userSection')">User List</a>
+                <a href="#" onclick="logout()">Logout</a>
+            </div>
+            <div class="col-md-9 p-4">
+                <!-- Categories Section -->
+                <div id="categorySection">
+                    <h5>Product Categories</h5>
+                    <div class="input-group mb-3">
+                        <input type="text" id="categoryInput" class="form-control" placeholder="New Category">
+                        <button class="btn btn-primary" onclick="addCategory()">Add</button>
+                    </div>
+                    <div id="categoryList"></div>
+                </div>
+
+                <!-- Products Section -->
+                <div id="productSection" style="display:none">
+                    <h5>All Products</h5>
+                    <div id="productList"></div>
+                </div>
+
+                <!-- Users Section -->
+                <div id="userSection" style="display: none;">
+                    <h5>User List</h5>
+                    <div id="userList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadSecureConfig() {
+            const res = await fetch("https://andhracart.onrender.com/config");// or deployed backend
+            const config = await res.json();
+
+            // Firebase Init
+            firebase.initializeApp(config.firebase);
+
+            // Supabase Init (only if you're using anon key later)
+            const supabase = window.supabase.createClient(
+                config.supabase.url,
+
+
+                "https://rdcrbkqqcqwpkegczrch.supabase.co",
+                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." // Your anon k
+            );
+        }
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        auth.onAuthStateChanged(user => {
+            if (!user) {
+                window.location.href = "/login.html";
+            }
+        });
+
+
+
+
+        async function addCategory() {
+            const name = document.getElementById("categoryInput").value.trim();
+            if (name) {
+                await db.collection("categories").add({ name });
+                document.getElementById("categoryInput").value = "";
+                loadCategories();
+            }
+        }
+
+        async function deleteCategory(id) {
+            await db.collection("categories").doc(id).delete();
+            loadCategories();
+        }
+
+        async function updateCategory(id, newName) {
+            await db.collection("categories").doc(id).update({ name: newName });
+            loadCategories();
+        }
+
+        async function loadCategories() {
+            const snapshot = await db.collection("categories").get();
+            const container = document.getElementById("categoryList");
+            container.innerHTML = "";
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const div = document.createElement("div");
+                div.className = "category-card d-flex justify-content-between align-items-center";
+                div.innerHTML = `
+          <span>${data.name}</span>
+          <div>
+            <button class="btn btn-sm btn-warning" onclick="editPrompt('${doc.id}', '${data.name}')">Edit</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteCategory('${doc.id}')">Delete</button>
+          </div>
+        `;
+                container.appendChild(div);
+            });
+        }
+
+        function editPrompt(id, oldName) {
+            const newName = prompt("Enter new category name:", oldName);
+            if (newName && newName.trim() !== "") {
+                updateCategory(id, newName.trim());
+            }
+        }
+
+        async function loadProducts() {
+            const container = document.getElementById("productList");
+            container.innerHTML = "<p>Loading...</p>";
+            const snapshot = await db.collection("products").get();
+
+            container.innerHTML = "";
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const imageUrl = data.imageUrl || 'https://via.placeholder.com/80';
+
+                const div = document.createElement("div");
+                div.className = "product-card d-flex align-items-center justify-content-between";
+
+                div.innerHTML = `
+        <div class="d-flex align-items-center gap-3">
+          <img src="${imageUrl}" width="80" height="80" class="rounded shadow-sm" alt="Product">
+          <div>
+            <h6 class="mb-0">${data.name}</h6>
+            <small>Price: ₹${data.price}</small><br>
+            <small>Shop ID: ${data.shopId}</small>
+          </div>
+        </div>
+        <button class="btn btn-sm btn-danger" onclick="deleteProduct('${doc.id}')">Delete</button>
+      `;
+                container.appendChild(div);
+            });
+        }
+
+
+
+        async function deleteProduct(id) {
+            if (confirm("Are you sure you want to delete this product?")) {
+                await db.collection("products").doc(id).delete();
+                loadAllProducts();
+            }
+        }
+
+        async function loadUsers() {
+            const snapshot = await db.collection("users").get();
+            const container = document.getElementById("userList");
+            container.innerHTML = "";
+            snapshot.forEach(doc => {
+                const user = doc.data();
+                const div = document.createElement("div");
+                div.className = "category-card d-flex justify-content-between align-items-center";
+                div.innerHTML = `
+          <div>
+            <strong>${user.name || 'No Name'}</strong><br>
+            ${user.email || ''}<br>
+            Role: <select onchange="changeRole('${doc.id}', this.value)">
+              <option value="user" ${user.role === 'user' ? 'selected' : ''}>User</option>
+              <option value="shop" ${user.role === 'shop' ? 'selected' : ''}>Shop Owner</option>
+              <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+            </select>
+          </div>
+        `;
+                container.appendChild(div);
+            });
+        }
+
+        async function changeRole(userId, newRole) {
+            await db.collection("users").doc(userId).update({ role: newRole });
+            alert("Role updated successfully");
+        }
+
+        function logout() {
+            auth.signOut();
+        }
+
+        function showSection(sectionId) {
+            document.querySelectorAll('#categorySection, #productSection, #userSection').forEach(s => s.style.display = 'none');
+            document.getElementById(sectionId).style.display = 'block';
+            if (sectionId === 'productSection') loadAllProducts();
+            if (sectionId === 'userSection') loadUsers();
+        }
+
+        loadCategories();
+    </script>
+</body>
+
+</html>
