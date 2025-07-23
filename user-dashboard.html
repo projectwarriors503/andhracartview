@@ -61,35 +61,34 @@
   </div>
 
   <script>
+    let auth, db, currentUser;
+
     async function loadSecureConfig() {
-      const res = await fetch("https://andhracart.onrender.com/config");// or deployed backend
-      const config = await res.json();
+      try {
+        const res = await fetch("https://andhracart.onrender.com/config");
+        const config = await res.json();
 
-      // Firebase Init
-      firebase.initializeApp(config.firebase);
+        // ✅ Firebase init
+        firebase.initializeApp(config.firebase);
+        auth = firebase.auth();
+        db = firebase.firestore();
 
-      // Supabase Init (only if you're using anon key later)
-      const supabase = window.supabase.createClient(
-        config.supabase.url,
+        // ✅ Start listening to auth state
+        auth.onAuthStateChanged(user => {
+          if (user) {
+            currentUser = user;
+            loadProfile();
+            loadCart();
+            loadOrders();
+          }
+        });
 
-
-        "https://rdcrbkqqcqwpkegczrch.supabase.co",
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." // Your anon k
-      );
-    }
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-
-    let currentUser;
-
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        currentUser = user;
-        loadProfile();
-        loadCart();
-        loadOrders();
+      } catch (err) {
+        console.error("❌ Failed to load Firebase config:", err);
       }
-    });
+    }
+
+    loadSecureConfig(); // ✅ call it on page load
 
     function loadProfile() {
       db.collection("users").doc(currentUser.uid).get().then(doc => {
@@ -123,11 +122,11 @@
         snapshot.forEach(doc => {
           const item = doc.data();
           container.innerHTML += `
-          <div class="mb-2 border-bottom pb-2">
-            <img src="${item.imageUrl}" alt="Product" style="height: 50px; width: 50px; object-fit: cover;" class="me-2">
-            <strong>${item.name}</strong> - ₹${item.price}
-          </div>
-        `;
+            <div class="mb-2 border-bottom pb-2">
+              <img src="${item.imageUrl}" alt="Product" style="height: 50px; width: 50px; object-fit: cover;" class="me-2">
+              <strong>${item.name}</strong> - ₹${item.price}
+            </div>
+          `;
         });
       });
     }
@@ -187,16 +186,18 @@
             "Delivered": "success"
           }[order.status] || "secondary";
 
-          const cancelButton = order.status === "Pending" ? `<button class='btn btn-sm btn-outline-danger ms-2' onclick='cancelOrder("${orderId}")'>Cancel</button>` : "";
+          const cancelButton = order.status === "Pending"
+            ? `<button class='btn btn-sm btn-outline-danger ms-2' onclick='cancelOrder("${orderId}")'>Cancel</button>`
+            : "";
 
           container.innerHTML += `
-          <div class="mb-3 border-bottom pb-2">
-            <img src="${order.imageUrl}" style="height: 50px; width: 50px; object-fit: cover;" class="me-2">
-            <strong>${order.name}</strong> - ₹${order.price} <br>
-            <span class="badge bg-${statusColor} badge-status">${order.status}</span>
-            ${cancelButton}
-          </div>
-        `;
+            <div class="mb-3 border-bottom pb-2">
+              <img src="${order.imageUrl}" style="height: 50px; width: 50px; object-fit: cover;" class="me-2">
+              <strong>${order.name}</strong> - ₹${order.price} <br>
+              <span class="badge bg-${statusColor} badge-status">${order.status}</span>
+              ${cancelButton}
+            </div>
+          `;
         });
       });
     }
