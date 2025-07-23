@@ -236,19 +236,21 @@
       });
     }
 
-
     function displayItems(items) {
       const container = document.getElementById('itemsContainer');
       container.innerHTML = items.map(item => `
-        <div class="item">
-         <img src="${item.imageUrl}" alt="${item.name}" />
-
-          <h3>${item.name}</h3>
-          <p>₹${item.price}</p>
-          <button onclick='addToCart("${item.id}")'>Add to Cart</button>
-        </div>
-      `).join('');
+    <div class="item">
+      <img src="${item.imageUrl}" alt="${item.name}" />
+      <h3>${item.name}</h3>
+      <p><strong>₹${item.price}</strong></p>
+      <p>${item.description}</p>
+      <button onclick='addToCart("${item.id}")'>Add to Cart</button>
+    </div>
+  `).join('');
     }
+
+
+
 
     function filterItems() {
       const query = document.getElementById('searchInput').value.toLowerCase();
