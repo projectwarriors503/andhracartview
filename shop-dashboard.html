@@ -100,18 +100,41 @@
   </div>
 
   <script>
-    async function loadSecureConfig() {
-      const res = await fetch("https://andhracart.onrender.com/config");// or deployed backend
-      const config = await res.json();
 
-      // Firebase Init
-      firebase.initializeApp(config.firebase);
+     let auth, db, currentUser;
+
+    async function loadSecureConfig() {
+      try {
+        const res = await fetch("https://andhracart.onrender.com/config");
+        const config = await res.json();
+
+        // ✅ Firebase init
+        firebase.initializeApp(config.firebase);
+        auth = firebase.auth();
+        db = firebase.firestore();
+
+        // ✅ Start listening to auth state
+        auth.onAuthStateChanged(user => {
+          if (user) {
+            currentUser = user;
+            loadProfile();
+            loadCart();
+            loadOrders();
+          }
+        });
+
+      } catch (err) {
+        console.error("❌ Failed to load Firebase config:", err);
+      }
+    }
+
+    loadSecureConfig(); // ✅ call it on page load
+
+   
 
       // Supabase Init (only if you're using anon key later)
       const supabase = window.supabase.createClient(
         config.supabase.url,
-
-
         "https://rdcrbkqqcqwpkegczrch.supabase.co",
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." // Your anon k
       );
