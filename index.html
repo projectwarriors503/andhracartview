@@ -144,7 +144,8 @@
       <a href="#">Home</a>
       <a href="#">About</a>
       <a href="login.html">Login</a>
-      <a href="user-dashboard.html">User Dashboard</a>
+      <a href="user-dashboard.html" id="dashLink" style="display: none;">User Dashboard</a>
+
     </div>
   </header>
 
@@ -190,6 +191,13 @@
 
     // Call it first
     loadSecureConfig();
+
+    firebase.auth().onAuthStateChanged((user) => {
+      if (user) {
+        document.getElementById("dashLink").style.display = "inline-block";
+      }
+    });
+
 
     function toggleMenu() {
       document.getElementById('navLinks').classList.toggle('active');
@@ -249,11 +257,22 @@
     }
 
     function addToCart(itemId) {
-      let cart = JSON.parse(localStorage.getItem("cart") || "[]");
-      if (!cart.includes(itemId)) cart.push(itemId);
-      localStorage.setItem("cart", JSON.stringify(cart));
-      alert("Item added to cart!");
+      const item = allItems.find(i => i.id === itemId);
+      firebase.auth().onAuthStateChanged(user => {
+        if (!user) {
+          alert("Please login to add to cart.");
+          window.location.href = "login.html";
+          return;
+        }
+        const dbRef = firebase.firestore().collection("carts").doc(user.uid).collection("items");
+        dbRef.doc(item.id).set(item).then(() => {
+          alert("✅ Item added to your cart!");
+        }).catch(err => {
+          console.error("❌ Error adding to cart:", err);
+        });
+      });
     }
+
   </script>
 </body>
 
