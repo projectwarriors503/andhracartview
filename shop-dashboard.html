@@ -65,20 +65,15 @@
           <h5>Add New Product</h5>
           <form id="addProductForm">
             <div class="row g-3">
-              <div class="col-md-4"><input type="text" class="form-control" placeholder="Product Name" id="productName"
-                  required></div>
-              <div class="col-md-4"><input type="number" class="form-control" placeholder="Price" id="productPrice"
-                  required></div>
+              <div class="col-md-4"><input type="text" class="form-control" placeholder="Product Name" id="productName" required></div>
+              <div class="col-md-4"><input type="number" class="form-control" placeholder="Price" id="productPrice" required></div>
               <div class="col-md-4">
                 <select id="productCategory" class="form-select" required>
                   <option value="">Select Category</option>
                 </select>
-
               </div>
-              <div class="col-md-6"><input type="file" class="form-control" id="productImageFile" accept="image/*"
-                  required></div>
-              <div class="col-md-6"><input type="text" class="form-control" placeholder="Description" id="productDesc"
-                  required></div>
+              <div class="col-md-6"><input type="file" class="form-control" id="productImageFile" accept="image/*" required></div>
+              <div class="col-md-6"><input type="text" class="form-control" placeholder="Description" id="productDesc" required></div>
               <div class="col-12"><button class="btn btn-primary" type="submit">Add Product</button></div>
             </div>
           </form>
@@ -100,25 +95,30 @@
   </div>
 
   <script>
-
-     let auth, db, currentUser;
+    let auth, db, currentUser, supabase, currentUserId = null;
 
     async function loadSecureConfig() {
       try {
         const res = await fetch("https://andhracart.onrender.com/config");
         const config = await res.json();
 
-        // ✅ Firebase init
+        // Firebase init
         firebase.initializeApp(config.firebase);
         auth = firebase.auth();
         db = firebase.firestore();
 
-        // ✅ Start listening to auth state
-        auth.onAuthStateChanged(user => {
-          if (user) {
+        // Supabase init
+        supabase = window.supabase.createClient(config.supabase.url, config.supabase.anonKey);
+
+        // Auth listener
+        auth.onAuthStateChanged(async (user) => {
+          if (!user) {
+            window.location.href = "/login.html";
+          } else {
             currentUser = user;
-            loadProfile();
-            loadCart();
+            currentUserId = user.uid;
+            await loadCategories();
+            loadProducts();
             loadOrders();
           }
         });
@@ -128,56 +128,27 @@
       }
     }
 
-    loadSecureConfig(); // ✅ call it on page load
-
-   
-
-      // Supabase Init (only if you're using anon key later)
-      const supabase = window.supabase.createClient(
-        config.supabase.url,
-        "https://rdcrbkqqcqwpkegczrch.supabase.co",
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." // Your anon k
-      );
-    }
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-
-
-
-    const supabase = window.supabase.createClient(
-      "https://rdcrbkqqcqwpkegczrch.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." // Your anon key
-    );
-
-
-    let currentUserId = null;
-
-    auth.onAuthStateChanged(async (user) => {
-      if (!user) {
-        window.location.href = "/login.html";
-      } else {
-        currentUserId = user.uid;
-        await loadCategories();
-
-        loadProducts();
-        loadOrders();
-      }
-    });
+    loadSecureConfig(); // Call on page load
 
     async function loadCategories() {
       const categorySelect = document.getElementById("productCategory");
       categorySelect.innerHTML = '<option value="">Select Category</option>';
-
-      const snapshot = await db.collection("categories").get();
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        const option = document.createElement("option");
-        option.value = data.name;
-        option.textContent = data.name;
-        categorySelect.appendChild(option);
-      });
+      try {
+        const snapshot = await db.collection("categories").get();
+        if (snapshot.empty) {
+          console.warn("⚠️ No categories found.");
+        }
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const option = document.createElement("option");
+          option.value = data.name;
+          option.textContent = data.name;
+          categorySelect.appendChild(option);
+        });
+      } catch (error) {
+        console.error("❌ Error loading categories:", error);
+      }
     }
-
 
     async function uploadImageToSupabase(file) {
       const filePath = `products/${Date.now()}-${file.name}`;
