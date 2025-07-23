@@ -2,8 +2,8 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Shopping Home</title>
   <style>
     body {
@@ -163,29 +163,29 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-firestore-compat.js"></script>
 
-
-
-
   <script>
+    let db;
+    let allItems = [];
 
     async function loadSecureConfig() {
-      const res = await fetch("https://andhracart.onrender.com/config");// or deployed backend
-      const config = await res.json();
+      try {
+        const res = await fetch("https://andhracart.onrender.com/config");
+        const config = await res.json();
 
-      // Firebase Init
-      firebase.initializeApp(config.firebase);
+        // ✅ Initialize Firebase
+        firebase.initializeApp(config.firebase);
+        db = firebase.firestore();
 
-      // Supabase Init (only if you're using anon key later)
-      const supabase = window.supabase.createClient(
-        config.supabase.url,
-        "YOUR_SAFE_ANON_KEY"
-      );
+        // ✅ Now we can safely use Firestore
+        loadCategories();
+      } catch (err) {
+        console.error("❌ Failed to load Firebase config:", err);
+        alert("Backend config loading failed");
+      }
     }
 
-    
-    const db = firebase.firestore();
-
-    let allItems = [];
+    // Call it first
+    loadSecureConfig();
 
     function toggleMenu() {
       document.getElementById('navLinks').classList.toggle('active');
@@ -198,6 +198,8 @@
           return `<button onclick="loadItems('${data.name}')">${data.name}</button>`;
         });
         document.getElementById('categoryButtons').innerHTML = buttons.join('');
+      }).catch(err => {
+        console.error("❌ Failed to load categories:", err);
       });
     }
 
@@ -205,19 +207,21 @@
       db.collection("items").where("category", "==", category).get().then(snapshot => {
         allItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         displayItems(allItems);
+      }).catch(err => {
+        console.error("❌ Failed to load items:", err);
       });
     }
 
     function displayItems(items) {
       const container = document.getElementById('itemsContainer');
       container.innerHTML = items.map(item => `
-      <div class="item">
-        <img src="${item.image_url}" alt="${item.name}" />
-        <h3>${item.name}</h3>
-        <p>₹${item.price}</p>
-        <button onclick='addToCart("${item.id}")'>Add to Cart</button>
-      </div>
-    `).join('');
+        <div class="item">
+          <img src="${item.image_url}" alt="${item.name}" />
+          <h3>${item.name}</h3>
+          <p>₹${item.price}</p>
+          <button onclick='addToCart("${item.id}")'>Add to Cart</button>
+        </div>
+      `).join('');
     }
 
     function filterItems() {
@@ -232,10 +236,7 @@
       localStorage.setItem("cart", JSON.stringify(cart));
       alert("Item added to cart!");
     }
-
-    loadCategories();
   </script>
-
 </body>
 
 </html>
