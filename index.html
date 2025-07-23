@@ -151,8 +151,13 @@
     <input type="text" id="searchInput" placeholder="Search items..." oninput="filterItems()">
   </div>
 
-  <div class="category-buttons" id="categoryButtons"></div>
-  <div class="items" id="itemsContainer"></div>
+  <div class="category-buttons" id="categoryButtons">
+    <!-- Categories will be loaded here -->
+  </div>
+
+  <div class="items" id="itemsContainer">
+    <!-- Items will be displayed here -->
+  </div>
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
@@ -167,15 +172,20 @@
         const res = await fetch("https://andhracart.onrender.com/config");
         const config = await res.json();
 
+        // ✅ Initialize Firebase
         firebase.initializeApp(config.firebase);
         db = firebase.firestore();
 
+        // ✅ Now we can safely use Firestore
         loadCategories();
       } catch (err) {
-        console.error("❌ Failed to load config:", err);
-        alert("Failed to connect to backend.");
+        console.error("❌ Failed to load Firebase config:", err);
+        alert("Backend config loading failed");
       }
     }
+
+    // Call it first
+    loadSecureConfig();
 
     function toggleMenu() {
       document.getElementById('navLinks').classList.toggle('active');
@@ -193,6 +203,8 @@
       });
     }
 
+
+
     function loadItems(category) {
       db.collection("products").where("category", "==", category).get().then(snapshot => {
         allItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -202,11 +214,13 @@
       });
     }
 
+
     function displayItems(items) {
       const container = document.getElementById('itemsContainer');
       container.innerHTML = items.map(item => `
         <div class="item">
-          <img src="${item.imageUrl}" alt="${item.name}" />
+         <img src="${item.imageUrl}" alt="${item.name}" />
+
           <h3>${item.name}</h3>
           <p>₹${item.price}</p>
           <button onclick='addToCart("${item.id}")'>Add to Cart</button>
@@ -226,11 +240,7 @@
       localStorage.setItem("cart", JSON.stringify(cart));
       alert("Item added to cart!");
     }
-
-    // Call on page load
-    loadSecureConfig();
   </script>
-
 </body>
 
 </html>
