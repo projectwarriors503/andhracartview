@@ -177,7 +177,10 @@
         db = firebase.firestore();
 
         // ✅ Now we can safely use Firestore
+
         loadCategories();
+        loadAllItems(); // 🔥 NEW - Load all products initially
+
       } catch (err) {
         console.error("❌ Failed to load Firebase config:", err);
         alert("Backend config loading failed");
@@ -189,6 +192,16 @@
 
     function toggleMenu() {
       document.getElementById('navLinks').classList.toggle('active');
+    }
+
+
+    function loadAllItems() {
+      db.collection("products").get().then(snapshot => {
+        allItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        displayItems(allItems);
+      }).catch(err => {
+        console.error("❌ Failed to load all items:", err);
+      });
     }
 
     function loadCategories() {
