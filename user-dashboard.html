@@ -23,7 +23,14 @@
 
 <body class="bg-light">
   <div class="container py-4">
-    <h2 class="text-center mb-4">Welcome to Your Dashboard</h2>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2>Welcome to Your Dashboard</h2>
+      <div>
+        <a href="index.html" class="btn btn-outline-secondary btn-sm me-2">🏠 Home</a>
+        <button class="btn btn-danger btn-sm" onclick="logout()">Logout</button>
+      </div>
+    </div>
+
 
     <!-- Profile Section -->
     <div class="card mb-4">
@@ -31,8 +38,9 @@
         <strong>Profile</strong>
         <button class="btn btn-sm btn-outline-primary" onclick="toggleEditAddress()">Edit Address</button>
       </div>
+
+      
       <div class="card-body">
-        <a href="index.html" onclick="logout()">Logout</a>
         <p><strong>Name:</strong> <span id="userName"></span></p>
         <p><strong>Email:</strong> <span id="userEmail"></span></p>
         <p><strong>Phone:</strong> <span id="userPhone"></span></p>
@@ -204,7 +212,13 @@
       });
     }
 
-   
+    function logout() {
+      auth.signOut().then(() => {
+        window.location.href = "index.html";
+      });
+    }
+
+
   </script>
 </body>
 

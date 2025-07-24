@@ -137,6 +137,8 @@
 
 <body>
 
+
+
   <header>
     <h1>🛍️ Andhra Cart</h1>
     <span class="menu-toggle" onclick="toggleMenu()">☰</span>
@@ -145,9 +147,10 @@
       <a href="#">About</a>
       <a href="login.html">Login</a>
       <a href="user-dashboard.html" id="dashLink" style="display: none;">User Dashboard</a>
-
+      <span id="userGreeting" style="margin-left: 15px;"></span>
     </div>
   </header>
+
 
   <div class="search-bar">
     <input type="text" id="searchInput" placeholder="Search items..." oninput="filterItems()">
@@ -178,7 +181,7 @@
 
         // ✅ Initialize Firebase
         firebase.initializeApp(config.firebase);
-        auth = firebase.auth(); 
+        auth = firebase.auth();
         db = firebase.firestore();
 
         // ✅ Now we can safely use Firestore
@@ -198,8 +201,20 @@
     firebase.auth().onAuthStateChanged((user) => {
       if (user) {
         document.getElementById("dashLink").style.display = "inline-block";
+        document.querySelector('a[href="login.html"]').style.display = "none";
+
+        // 🔥 Get user name from Firestore
+        firebase.firestore().collection("users").doc(user.uid).get()
+          .then(doc => {
+            if (doc.exists) {
+              const name = doc.data().name || "User";
+              document.getElementById("userGreeting").textContent = `Welcome, ${name} 👋`;
+            }
+          });
       }
     });
+
+
 
 
     function toggleMenu() {
