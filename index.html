@@ -171,12 +171,9 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-auth-compat.js"></script>
 
-
   <script>
-    let db;
+    let db, auth;
     let allItems = [];
-
-
 
     async function loadSecureConfig() {
       try {
@@ -184,14 +181,31 @@
         const config = await res.json();
 
         firebase.initializeApp(config.firebase);
-        auth = firebase.auth();
+        auth = firebase.auth();        // 👈 now this works
         db = firebase.firestore();
-
-        // ✅ Auth listener goes INSIDE
-
 
         loadCategories();
         loadAllItems();
+
+        // ✅ Move the auth listener inside the config load
+        auth.onAuthStateChanged((user) => {
+          if (user) {
+            document.getElementById("dashLink").style.display = "inline-block";
+            document.querySelector('a[href="login.html"]').style.display = "none";
+
+            db.collection("users").doc(user.uid).get().then(doc => {
+              if (doc.exists) {
+                const name = doc.data().name || "User";
+                document.getElementById("userGreeting").textContent = `Welcome, ${name} 👋`;
+              }
+            });
+
+            db.collection("carts").doc(user.uid).collection("items").get().then(snapshot => {
+              const count = snapshot.size;
+              document.getElementById("cartCount").textContent = `🛒 ${count}`;
+            });
+          }
+        });
 
       } catch (err) {
         console.error("❌ Failed to load Firebase config:", err);
@@ -199,108 +213,139 @@
       }
     }
 
-    auth.onAuthStateChanged((user) => {
-      if (user) {
-        document.getElementById("dashLink").style.display = "inline-block";
-        document.querySelector('a[href="login.html"]').style.display = "none";
+    // 🔥 Call this once
+    loadSecureConfig();
 
-        db.collection("users").doc(user.uid).get().then(doc => {
-          if (doc.exists) {
-            const name = doc.data().name || "User";
-            document.getElementById("userGreeting").textContent = `Welcome, ${name} 👋`;
-          }
+
+    // <script>
+    //   let db;
+    //   let allItems = [];
+
+
+
+    //   async function loadSecureConfig() {
+    //   try {
+    //     const res = await fetch("https://andhracart.onrender.com/config");
+    //   const config = await res.json();
+
+    //   firebase.initializeApp(config.firebase);
+    //   auth = firebase.auth();
+    //   db = firebase.firestore();
+
+    //   // ✅ Auth listener goes INSIDE
+
+
+    //   loadCategories();
+    //   loadAllItems();
+
+    //   } catch (err) {
+    //     console.error("❌ Failed to load Firebase config:", err);
+    //   alert("Backend config loading failed");
+    //   }
+    // }
+
+    // auth.onAuthStateChanged((user) => {
+    //   if (user) {
+    //     document.getElementById("dashLink").style.display = "inline-block";
+    //   document.querySelector('a[href="login.html"]').style.display = "none";
+
+    //     db.collection("users").doc(user.uid).get().then(doc => {
+    //       if (doc.exists) {
+    //         const name = doc.data().name || "User";
+    //   document.getElementById("userGreeting").textContent = `Welcome, ${name} 👋`;
+    //       }
+    //     });
+
+    //     // 🔥 Get cart count
+    //     db.collection("carts").doc(user.uid).collection("items").get().then(snapshot => {
+    //       const count = snapshot.size;
+    //   document.getElementById("cartCount").textContent = `🛒 ${count}`;
+    //     });
+
+    //   }
+    // });
+
+
+
+
+      function toggleMenu() {
+        document.getElementById('navLinks').classList.toggle('active');
+    }
+
+
+      function loadAllItems() {
+        db.collection("products").get().then(snapshot => {
+          allItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          displayItems(allItems);
+        }).catch(err => {
+          console.error("❌ Failed to load all items:", err);
         });
+    }
 
-        // 🔥 Get cart count
-        db.collection("carts").doc(user.uid).collection("items").get().then(snapshot => {
-          const count = snapshot.size;
-          document.getElementById("cartCount").textContent = `🛒 ${count}`;
+      function loadCategories() {
+        db.collection("categories").get().then(snapshot => {
+          const buttons = snapshot.docs.map(doc => {
+            const data = doc.data();
+            return `<button onclick="loadItems('${data.name}')">${data.name}</button>`;
+          });
+          document.getElementById('categoryButtons').innerHTML = buttons.join('');
+        }).catch(err => {
+          console.error("❌ Failed to load categories:", err);
         });
-
-      }
-    });
-
-
-
-
-    function toggleMenu() {
-      document.getElementById('navLinks').classList.toggle('active');
     }
 
 
-    function loadAllItems() {
-      db.collection("products").get().then(snapshot => {
-        allItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        displayItems(allItems);
-      }).catch(err => {
-        console.error("❌ Failed to load all items:", err);
-      });
-    }
 
-    function loadCategories() {
-      db.collection("categories").get().then(snapshot => {
-        const buttons = snapshot.docs.map(doc => {
-          const data = doc.data();
-          return `<button onclick="loadItems('${data.name}')">${data.name}</button>`;
+      function loadItems(category) {
+        db.collection("products").where("category", "==", category).get().then(snapshot => {
+          allItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          displayItems(allItems);
+        }).catch(err => {
+          console.error("❌ Failed to load items:", err);
         });
-        document.getElementById('categoryButtons').innerHTML = buttons.join('');
-      }).catch(err => {
-        console.error("❌ Failed to load categories:", err);
-      });
     }
 
-
-
-    function loadItems(category) {
-      db.collection("products").where("category", "==", category).get().then(snapshot => {
-        allItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        displayItems(allItems);
-      }).catch(err => {
-        console.error("❌ Failed to load items:", err);
-      });
-    }
-
-    function displayItems(items) {
+      function displayItems(items) {
       const container = document.getElementById('itemsContainer');
       container.innerHTML = items.map(item => `
-    <div class="item">
-      <img src="${item.imageUrl}" alt="${item.name}" />
-      <h3>${item.name}</h3>
-      <p><strong>₹${item.price}</strong></p>
-      <p>${item.description}</p>
-      <button onclick='addToCart("${item.id}")'>Add to Cart</button>
-    </div>
-  `).join('');
+      <div class="item">
+        <img src="${item.imageUrl}" alt="${item.name}" />
+        <h3>${item.name}</h3>
+        <p><strong>₹${item.price}</strong></p>
+        <p>${item.description}</p>
+        <button onclick='addToCart("${item.id}")'>Add to Cart</button>
+      </div>
+      `).join('');
     }
 
 
 
 
-    function filterItems() {
+      function filterItems() {
       const query = document.getElementById('searchInput').value.toLowerCase();
       const filtered = allItems.filter(item => item.name.toLowerCase().includes(query));
       displayItems(filtered);
     }
 
-    
 
-    function addToCart(itemId) {
+
+      function addToCart(itemId) {
       const item = allItems.find(i => i.id === itemId);
       firebase.auth().onAuthStateChanged(user => {
         if (!user) {
-          alert("Please login to add to cart.");
-          window.location.href = "login.html";
-          return;
+        alert("Please login to add to cart.");
+      window.location.href = "login.html";
+      return;
         }
-        const dbRef = firebase.firestore().collection("carts").doc(user.uid).collection("items");
+      const dbRef = firebase.firestore().collection("carts").doc(user.uid).collection("items");
         dbRef.doc(item.id).set(item).then(() => {
-          alert("✅ Item added to your cart!");
+        alert("✅ Item added to your cart!");
           // 🔄 Update cart count
           dbRef.get().then(snapshot => {
-            document.getElementById("cartCount").textContent = `🛒 ${snapshot.size}`;
+        document.getElementById("cartCount").textContent = `🛒 ${snapshot.size}`;
           });
         }).catch(err => {
-          console.error("❌ Error adding to cart:", err);
+        console.error("❌ Error adding to cart:", err);
         });
       });
     }
