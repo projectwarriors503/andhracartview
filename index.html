@@ -7,43 +7,6 @@
   <title>Shopping Home</title>
   <link rel="shortcut icon" href="logo.jpg" type="image/x-icon">
   <style>
-    #loadingOverlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(255, 255, 255, 0.9);
-      z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      font-size: 20px;
-      font-weight: bold;
-      color: #333;
-    }
-
-    .loader {
-      border: 6px solid #f3f3f3;
-      border-top: 6px solid #3498db;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      animation: spin 1s linear infinite;
-      margin-bottom: 10px;
-    }
-
-    @keyframes spin {
-      0% {
-        transform: rotate(0deg);
-      }
-
-      100% {
-        transform: rotate(360deg);
-      }
-    }
-
     body {
       font-family: Arial, sans-serif;
       padding: 20px;
@@ -173,10 +136,7 @@
 </head>
 
 <body>
-  <div id="loadingOverlay">
-    <div class="loader"></div>
-    Please wait while we load your shopping experience...
-  </div>
+
 
 
 
@@ -247,114 +207,112 @@
           }
 
           // ✅ Hide the loader AFTER everything is ready
-          document.getElementById("loadingOverlay").style.display = "none";
+
         });
 
       } catch (err) {
         console.error("❌ Failed to load Firebase config:", err);
         alert("Backend config loading failed");
-        document.getElementById("loadingOverlay").textContent = "❌ Failed to load data.";
+
       }
-    }
 
-    // 🔥 Call this once
-    // loadSecureConfig();
-
-    window.onload = () => {
       loadSecureConfig();
-    };
 
-    // <script>
-    //   let db;
-    //   let allItems = [];
+      // window.onload = () => {
+      //   loadSecureConfig();
+      // };
 
-
-
-    //   async function loadSecureConfig() {
-    //   try {
-    //     const res = await fetch("https://andhracart.onrender.com/config");
-    //   const config = await res.json();
-
-    //   firebase.initializeApp(config.firebase);
-    //   auth = firebase.auth();
-    //   db = firebase.firestore();
-
-    //   // ✅ Auth listener goes INSIDE
-
-
-    //   loadCategories();
-    //   loadAllItems();
-
-    //   } catch (err) {
-    //     console.error("❌ Failed to load Firebase config:", err);
-    //   alert("Backend config loading failed");
-    //   }
-    // }
-
-    // auth.onAuthStateChanged((user) => {
-    //   if (user) {
-    //     document.getElementById("dashLink").style.display = "inline-block";
-    //   document.querySelector('a[href="login.html"]').style.display = "none";
-
-    //     db.collection("users").doc(user.uid).get().then(doc => {
-    //       if (doc.exists) {
-    //         const name = doc.data().name || "User";
-    //   document.getElementById("userGreeting").textContent = `Welcome, ${name} 👋`;
-    //       }
-    //     });
-
-    //     // 🔥 Get cart count
-    //     db.collection("carts").doc(user.uid).collection("items").get().then(snapshot => {
-    //       const count = snapshot.size;
-    //   document.getElementById("cartCount").textContent = `🛒 ${count}`;
-    //     });
-
-    //   }
-    // });
+      // <script>
+      //   let db;
+      //   let allItems = [];
 
 
 
+      //   async function loadSecureConfig() {
+      //   try {
+      //     const res = await fetch("https://andhracart.onrender.com/config");
+      //   const config = await res.json();
 
-    function toggleMenu() {
-      document.getElementById('navLinks').classList.toggle('active');
-    }
+      //   firebase.initializeApp(config.firebase);
+      //   auth = firebase.auth();
+      //   db = firebase.firestore();
+
+      //   // ✅ Auth listener goes INSIDE
 
 
-    function loadAllItems() {
-      db.collection("products").get().then(snapshot => {
-        allItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        displayItems(allItems);
-      }).catch(err => {
-        console.error("❌ Failed to load all items:", err);
-      });
-    }
+      //   loadCategories();
+      //   loadAllItems();
 
-    function loadCategories() {
-      db.collection("categories").get().then(snapshot => {
-        const buttons = snapshot.docs.map(doc => {
-          const data = doc.data();
-          return `<button onclick="loadItems('${data.name}')">${data.name}</button>`;
+      //   } catch (err) {
+      //     console.error("❌ Failed to load Firebase config:", err);
+      //   alert("Backend config loading failed");
+      //   }
+      // }
+
+      // auth.onAuthStateChanged((user) => {
+      //   if (user) {
+      //     document.getElementById("dashLink").style.display = "inline-block";
+      //   document.querySelector('a[href="login.html"]').style.display = "none";
+
+      //     db.collection("users").doc(user.uid).get().then(doc => {
+      //       if (doc.exists) {
+      //         const name = doc.data().name || "User";
+      //   document.getElementById("userGreeting").textContent = `Welcome, ${name} 👋`;
+      //       }
+      //     });
+
+      //     // 🔥 Get cart count
+      //     db.collection("carts").doc(user.uid).collection("items").get().then(snapshot => {
+      //       const count = snapshot.size;
+      //   document.getElementById("cartCount").textContent = `🛒 ${count}`;
+      //     });
+
+      //   }
+      // });
+
+
+
+
+      function toggleMenu() {
+        document.getElementById('navLinks').classList.toggle('active');
+      }
+
+
+      function loadAllItems() {
+        db.collection("products").get().then(snapshot => {
+          allItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          displayItems(allItems);
+        }).catch(err => {
+          console.error("❌ Failed to load all items:", err);
         });
-        document.getElementById('categoryButtons').innerHTML = buttons.join('');
-      }).catch(err => {
-        console.error("❌ Failed to load categories:", err);
-      });
-    }
+      }
+
+      function loadCategories() {
+        db.collection("categories").get().then(snapshot => {
+          const buttons = snapshot.docs.map(doc => {
+            const data = doc.data();
+            return `<button onclick="loadItems('${data.name}')">${data.name}</button>`;
+          });
+          document.getElementById('categoryButtons').innerHTML = buttons.join('');
+        }).catch(err => {
+          console.error("❌ Failed to load categories:", err);
+        });
+      }
 
 
 
-    function loadItems(category) {
-      db.collection("products").where("category", "==", category).get().then(snapshot => {
-        allItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        displayItems(allItems);
-      }).catch(err => {
-        console.error("❌ Failed to load items:", err);
-      });
-    }
+      function loadItems(category) {
+        db.collection("products").where("category", "==", category).get().then(snapshot => {
+          allItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          displayItems(allItems);
+        }).catch(err => {
+          console.error("❌ Failed to load items:", err);
+        });
+      }
 
-    function displayItems(items) {
-      const container = document.getElementById('itemsContainer');
-      container.innerHTML = items.map(item => `
+      function displayItems(items) {
+        const container = document.getElementById('itemsContainer');
+        container.innerHTML = items.map(item => `
       <div class="item">
         <img src="${item.imageUrl}" alt="${item.name}" />
         <h3>${item.name}</h3>
@@ -363,39 +321,39 @@
         <button onclick='addToCart("${item.id}")'>Add to Cart</button>
       </div>
       `).join('');
-    }
+      }
 
 
 
 
-    function filterItems() {
-      const query = document.getElementById('searchInput').value.toLowerCase();
-      const filtered = allItems.filter(item => item.name.toLowerCase().includes(query));
-      displayItems(filtered);
-    }
+      function filterItems() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        const filtered = allItems.filter(item => item.name.toLowerCase().includes(query));
+        displayItems(filtered);
+      }
 
 
 
-    function addToCart(itemId) {
-      const item = allItems.find(i => i.id === itemId);
-      firebase.auth().onAuthStateChanged(user => {
-        if (!user) {
-          alert("Please login to add to cart.");
-          window.location.href = "login.html";
-          return;
-        }
-        const dbRef = firebase.firestore().collection("carts").doc(user.uid).collection("items");
-        dbRef.doc(item.id).set(item).then(() => {
-          alert("✅ Item added to your cart!");
-          // 🔄 Update cart count
-          dbRef.get().then(snapshot => {
-            document.getElementById("cartCount").textContent = `🛒 ${snapshot.size}`;
+      function addToCart(itemId) {
+        const item = allItems.find(i => i.id === itemId);
+        firebase.auth().onAuthStateChanged(user => {
+          if (!user) {
+            alert("Please login to add to cart.");
+            window.location.href = "login.html";
+            return;
+          }
+          const dbRef = firebase.firestore().collection("carts").doc(user.uid).collection("items");
+          dbRef.doc(item.id).set(item).then(() => {
+            alert("✅ Item added to your cart!");
+            // 🔄 Update cart count
+            dbRef.get().then(snapshot => {
+              document.getElementById("cartCount").textContent = `🛒 ${snapshot.size}`;
+            });
+          }).catch(err => {
+            console.error("❌ Error adding to cart:", err);
           });
-        }).catch(err => {
-          console.error("❌ Error adding to cart:", err);
         });
-      });
-    }
+      }
 
 
   </script>
