@@ -118,7 +118,7 @@
         // Auth listener
         auth.onAuthStateChanged(async (user) => {
           if (!user) {
-            window.location.href = "/login.html";
+            window.location.href = "/index.html";
           } else {
             currentUser = user;
             currentUserId = user.uid;
@@ -268,6 +268,7 @@
 
     function logout() {
       auth.signOut();
+       window.location.href = "/index.html";
     }
   </script>
 </body>
