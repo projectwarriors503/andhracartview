@@ -148,6 +148,8 @@
       <a href="login.html">Login</a>
       <a href="user-dashboard.html" id="dashLink" style="display: none;">User Dashboard</a>
       <span id="userGreeting" style="margin-left: 15px;"></span>
+      <span id="cartCount" style="margin-left: 15px;">🛒 0</span>
+
     </div>
   </header>
 
@@ -186,19 +188,7 @@
         db = firebase.firestore();
 
         // ✅ Auth listener goes INSIDE
-        auth.onAuthStateChanged((user) => {
-          if (user) {
-            document.getElementById("dashLink").style.display = "inline-block";
-            document.querySelector('a[href="login.html"]').style.display = "none";
 
-            db.collection("users").doc(user.uid).get().then(doc => {
-              if (doc.exists) {
-                const name = doc.data().name || "User";
-                document.getElementById("userGreeting").textContent = `Welcome, ${name} 👋`;
-              }
-            });
-          }
-        });
 
         loadCategories();
         loadAllItems();
@@ -209,6 +199,26 @@
       }
     }
 
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        document.getElementById("dashLink").style.display = "inline-block";
+        document.querySelector('a[href="login.html"]').style.display = "none";
+
+        db.collection("users").doc(user.uid).get().then(doc => {
+          if (doc.exists) {
+            const name = doc.data().name || "User";
+            document.getElementById("userGreeting").textContent = `Welcome, ${name} 👋`;
+          }
+        });
+
+        // 🔥 Get cart count
+        db.collection("carts").doc(user.uid).collection("items").get().then(snapshot => {
+          const count = snapshot.size;
+          document.getElementById("cartCount").textContent = `🛒 ${count}`;
+        });
+
+      }
+    });
 
 
 
@@ -272,6 +282,8 @@
       displayItems(filtered);
     }
 
+    
+
     function addToCart(itemId) {
       const item = allItems.find(i => i.id === itemId);
       firebase.auth().onAuthStateChanged(user => {
@@ -283,11 +295,16 @@
         const dbRef = firebase.firestore().collection("carts").doc(user.uid).collection("items");
         dbRef.doc(item.id).set(item).then(() => {
           alert("✅ Item added to your cart!");
+          // 🔄 Update cart count
+          dbRef.get().then(snapshot => {
+            document.getElementById("cartCount").textContent = `🛒 ${snapshot.size}`;
+          });
         }).catch(err => {
           console.error("❌ Error adding to cart:", err);
         });
       });
     }
+
 
   </script>
 </body>
