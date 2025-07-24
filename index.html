@@ -258,8 +258,11 @@
     }
 
     // 🔥 Call this once
-    loadSecureConfig();
+    // loadSecureConfig();
 
+    window.onload = () => {
+      loadSecureConfig();
+    };
 
     // <script>
     //   let db;
