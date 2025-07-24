@@ -174,20 +174,34 @@
     let db;
     let allItems = [];
 
+
+
     async function loadSecureConfig() {
       try {
         const res = await fetch("https://andhracart.onrender.com/config");
         const config = await res.json();
 
-        // ✅ Initialize Firebase
         firebase.initializeApp(config.firebase);
         auth = firebase.auth();
         db = firebase.firestore();
 
-        // ✅ Now we can safely use Firestore
+        // ✅ Auth listener goes INSIDE
+        auth.onAuthStateChanged((user) => {
+          if (user) {
+            document.getElementById("dashLink").style.display = "inline-block";
+            document.querySelector('a[href="login.html"]').style.display = "none";
+
+            db.collection("users").doc(user.uid).get().then(doc => {
+              if (doc.exists) {
+                const name = doc.data().name || "User";
+                document.getElementById("userGreeting").textContent = `Welcome, ${name} 👋`;
+              }
+            });
+          }
+        });
 
         loadCategories();
-        loadAllItems(); // 🔥 NEW - Load all products initially
+        loadAllItems();
 
       } catch (err) {
         console.error("❌ Failed to load Firebase config:", err);
@@ -195,24 +209,6 @@
       }
     }
 
-    // Call it first
-    loadSecureConfig();
-
-    firebase.auth().onAuthStateChanged((user) => {
-      if (user) {
-        document.getElementById("dashLink").style.display = "inline-block";
-        document.querySelector('a[href="login.html"]').style.display = "none";
-
-        // 🔥 Get user name from Firestore
-        firebase.firestore().collection("users").doc(user.uid).get()
-          .then(doc => {
-            if (doc.exists) {
-              const name = doc.data().name || "User";
-              document.getElementById("userGreeting").textContent = `Welcome, ${name} 👋`;
-            }
-          });
-      }
-    });
 
 
 
