@@ -7,73 +7,92 @@
   <link rel="stylesheet" href="styles.css" />
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
+      font-family: 'Poppins', sans-serif;
       margin: 0;
       padding: 0;
-      background-color: #f8f9fa;
+      background-color: #ffffff;
       color: #333;
     }
 
     nav {
-      background-color: #ffffff;
-      padding: 20px;
+      background-color: #fff;
+      padding: 15px 20px;
       display: flex;
-      justify-content: center;
+      justify-content: space-between;
       align-items: center;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
 
     .nav-brand {
-      text-align: center;
+      display: flex;
+      align-items: center;
     }
 
     .nav-brand img {
-      height: 130px;
-      width: 130px;
-      display: block;
-      margin: 0 auto 10px;
+      height: 80px;
+      width: 80px;
       border-radius: 50%;
       object-fit: cover;
       border: 2px solid #008080;
+      margin-right: 15px;
     }
 
     .nav-brand h1 {
       margin: 0;
-      font-size: 28px;
+      font-size: 24px;
       color: #008080;
-      font-weight: bold;
+      font-weight: 600;
     }
 
     header {
-      background-color: #008080;
-      color: white;
-      padding: 20px 10px;
+      background-color: #e6f4f1;
+      color: #004d4d;
+      padding: 40px 10px;
       text-align: center;
     }
 
+    header h1 {
+      font-size: 36px;
+      margin-bottom: 10px;
+    }
+
+    header p {
+      font-size: 14px;
+      margin: 0;
+      opacity: 0.8;
+    }
+
     .container {
-      padding: 40px 20px;
+      padding: 50px 20px;
       max-width: 1000px;
       margin: auto;
+    }
+
+    section {
+      background: #f9f9f9;
+      padding: 25px;
+      margin-bottom: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
     }
 
     h1, h2 {
       color: #008080;
     }
 
-    .features, .steps {
-      margin: 20px 0;
-    }
-
     .features ul, .steps ol {
       padding-left: 20px;
     }
 
+    li {
+      margin-bottom: 10px;
+    }
+
     footer {
-      background-color: #333;
+      background-color: #008080;
       color: white;
       text-align: center;
-      padding: 15px 0;
+      padding: 20px 0;
       margin-top: 50px;
     }
   </style>
