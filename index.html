@@ -164,6 +164,8 @@
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-auth-compat.js"></script>
+
 
   <script>
     let db;
@@ -176,6 +178,7 @@
 
         // ✅ Initialize Firebase
         firebase.initializeApp(config.firebase);
+        auth = firebase.auth(); 
         db = firebase.firestore();
 
         // ✅ Now we can safely use Firestore
