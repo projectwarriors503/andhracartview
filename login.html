@@ -31,9 +31,49 @@
       color: red;
       margin-top: 10px;
     }
+
+    /* this is popup */
+    #customPopup {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    #popupContent {
+      background-color: white;
+      padding: 20px 30px;
+      border-radius: 10px;
+      text-align: center;
+      max-width: 300px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+    }
+
+    #popupContent button {
+      margin-top: 15px;
+      padding: 8px 20px;
+      background: #2196f3;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
+  <div id="customPopup" style="display: none;">
+    <div id="popupContent">
+      <span id="popupMessage"></span>
+      <button onclick="closePopup()">OK</button>
+    </div>
+  </div>
+
   <div class="form-container">
     <h3 id="formTitle">Login</h3>
     <form id="authForm">
