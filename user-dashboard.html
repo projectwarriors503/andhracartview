@@ -284,7 +284,7 @@
     function cancelOrder(orderId) {
       if (confirm("Are you sure you want to cancel this order?")) {
         db.collection("orders").doc(orderId).delete().then(() => {
-          alert("❌ Order canceled.");
+          showPopup("❌ Order canceled.");
           loadOrders();
         });
       }
