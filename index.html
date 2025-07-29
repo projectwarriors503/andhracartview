@@ -7,6 +7,12 @@
   <title>Shopping Home</title>
   <link rel="shortcut icon" href="logo.jpg" type="image/x-icon">
   <style>
+
+    .category-buttons button.active {
+  background: #0d47a1;
+  box-shadow: 0 0 5px rgba(0,0,0,0.3);
+}
+
     body {
       font-family: Arial, sans-serif;
       padding: 20px;
@@ -393,15 +399,15 @@ function hideLoader() {
     //   });
     // }
 
-    function loadCategories() {
+   function loadCategories() {
   db.collection("categories").get().then(snapshot => {
     const buttons = [
-      `<button onclick="loadAllItems()">All Items</button>`  // ✅ All Items button
+      `<button class="category-btn" onclick="setActiveCategory(this); loadAllItems()">All Items</button>`
     ];
 
     snapshot.docs.forEach(doc => {
       const data = doc.data();
-      buttons.push(`<button onclick="loadItems('${data.name}')">${data.name}</button>`);
+      buttons.push(`<button class="category-btn" onclick="setActiveCategory(this); loadItems('${data.name}')">${data.name}</button>`);
     });
 
     document.getElementById('categoryButtons').innerHTML = buttons.join('');
@@ -409,6 +415,12 @@ function hideLoader() {
     console.error("❌ Failed to load categories:", err);
   });
 }
+
+function setActiveCategory(btn) {
+  document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
 
 
        function loadItems(category) {
@@ -433,18 +445,28 @@ function hideLoader() {
     //   });
     // }
 
-    function displayItems(items) {
-      const container = document.getElementById('itemsContainer');
-      container.innerHTML = items.map(item => `
-      <div class="item">
-        <img src="${item.imageUrl}" alt="${item.name}" />
-        <h3>${item.name}</h3>
-        <p><strong>₹${item.price}</strong></p>
-        <p>${item.description}</p>
-        <button onclick='addToCart("${item.id}")'>Add to Cart</button>
-      </div>
-    `).join('');
-    }
+   function displayItems(items) {
+  const container = document.getElementById('itemsContainer');
+
+  if (items.length === 0) {
+    container.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; padding: 30px; font-size: 18px; color: #555;">
+        No items found ❌
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = items.map(item => `
+    <div class="item">
+      <img src="${item.imageUrl}" alt="${item.name}" />
+      <h3>${item.name}</h3>
+      <p><strong>₹${item.price}</strong></p>
+      <p>${item.description}</p>
+      <button onclick='addToCart("${item.id}")'>Add to Cart</button>
+    </div>
+  `).join('');
+}
+
 
     function filterItems() {
       const query = document.getElementById('searchInput').value.toLowerCase();
