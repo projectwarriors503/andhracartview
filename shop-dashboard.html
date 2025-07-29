@@ -112,13 +112,25 @@
 </head>
 
 <body>
-  
+
   <div id="customPopup" style="display: none;">
     <div id="popupContent">
       <span id="popupMessage"></span>
       <button onclick="closePopup()">OK</button>
     </div>
   </div>
+
+  <script>
+    function showPopup(message) {
+      document.getElementById("popupMessage").textContent = message;
+      document.getElementById("customPopup").style.display = "flex";
+    }
+
+    function closePopup() {
+      document.getElementById("customPopup").style.display = "none";
+    }
+
+  </script>
 
   <div class="container-fluid">
     <div class="row">
@@ -225,7 +237,7 @@
       const filePath = `products/${Date.now()}-${file.name}`;
       const { error } = await supabase.storage.from('product-images').upload(filePath, file);
       if (error) {
-        alert("Image upload failed");
+        showPopup("Image upload failed");
         return null;
       }
       const { data: publicURL } = supabase.storage.from('product-images').getPublicUrl(filePath);
@@ -248,7 +260,7 @@
       };
 
       await db.collection("products").add(data);
-      alert("Product added!");
+      showPopup("Product added!");
       e.target.reset();
       loadProducts();
     });

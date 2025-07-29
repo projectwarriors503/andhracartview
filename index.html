@@ -166,6 +166,41 @@
       border-radius: 5px;
       cursor: pointer;
     }
+
+    /* this botton */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #ffffff;
+      border-top: 1px solid #ccc;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      z-index: 999;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .bottom-nav button {
+      background: none;
+      border: none;
+      font-size: 16px;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .bottom-nav button:hover {
+      color: #2196f3;
+    }
+
+    body {
+      padding-bottom: 80px;
+      /* already partially set, increase if needed */
+    }
   </style>
 
 
@@ -180,6 +215,14 @@
       <button onclick="closePopup()">OK</button>
     </div>
   </div>
+  <!-- this bottons -->
+  <div class="bottom-nav">
+    <button onclick="window.location.href='index.html'">🏠 Home</button>
+    <button onclick="window.location.href='categories.html'">🗂️ Categories</button>
+    <button onclick="window.location.href='cart.html'">🛒 Cart</button>
+    <button onclick="window.location.href='profile.html'">👤 Profile</button>
+  </div>
+
 
 
 
@@ -342,7 +385,7 @@
         }
         const dbRef = firebase.firestore().collection("carts").doc(user.uid).collection("items");
         dbRef.doc(item.id).set(item).then(() => {
-       
+
           showPopup("✅ Item added to your cart!");
           dbRef.get().then(snapshot => {
             document.getElementById("cartCount").textContent = `🛒 ${snapshot.size}`;

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -66,6 +67,7 @@
     }
   </style>
 </head>
+
 <body>
   <div id="customPopup" style="display: none;">
     <div id="popupContent">
@@ -74,6 +76,18 @@
     </div>
   </div>
 
+  <script>
+    function showPopup(message) {
+      document.getElementById("popupMessage").textContent = message;
+      document.getElementById("customPopup").style.display = "flex";
+    }
+
+    function closePopup() {
+      document.getElementById("customPopup").style.display = "none";
+    }
+
+  </script>
+
   <div class="form-container">
     <h3 id="formTitle">Login</h3>
     <form id="authForm">
@@ -81,10 +95,12 @@
         <input type="email" class="form-control" id="email" placeholder="Email" required autocomplete="email">
       </div>
       <div class="mb-3">
-        <input type="password" class="form-control" id="password" placeholder="Password" required autocomplete="new-password">
+        <input type="password" class="form-control" id="password" placeholder="Password" required
+          autocomplete="new-password">
       </div>
       <div class="mb-3 d-none" id="confirmPasswordField">
-        <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm Password" autocomplete="new-password">
+        <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm Password"
+          autocomplete="new-password">
       </div>
       <div class="mb-3">
         <input type="checkbox" id="showPassword"> <label for="showPassword">Show Password</label>
@@ -103,6 +119,9 @@
       <span class="toggle-btn" onclick="toggleForm()">Sign up</span>
     </p>
   </div>
+
+
+
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
@@ -159,7 +178,7 @@
               phone,
               role: "user"
             });
-            alert("Account created! You can now login.");
+            showPopup("Account created! You can now login.");
             toggleForm();
           } else {
             const userCredential = await auth.signInWithEmailAndPassword(email, password);
@@ -192,4 +211,5 @@
     }
   </script>
 </body>
+
 </html>

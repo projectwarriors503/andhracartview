@@ -250,7 +250,7 @@
 
         async function changeRole(userId, newRole) {
             await db.collection("users").doc(userId).update({ role: newRole });
-            alert("Role updated successfully");
+            showPopup("Role updated successfully");
         }
 
         function logout() {
