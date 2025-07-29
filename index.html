@@ -210,12 +210,26 @@
         display: none;
       }
     }
+
+/*     loader */
+    #loader p {
+  font-size: 16px;
+  color: #555;
+  margin-top: 10px;
+}
+
   </style>
 
 
 </head>
 
 <body>
+
+  <div id="loader" style="display: none; text-align: center; padding: 20px;">
+  <img src="https://i.imgur.com/llF5iyg.gif" alt="Loading..." width="50"><br>
+  <p>Please wait, items are loading...</p>
+</div>
+
 
   <!-- Custom Popup -->
   <div id="customPopup" style="display: none;">
@@ -271,6 +285,18 @@
 
 
   <script>
+
+
+    function showLoader() {
+  document.getElementById('loader').style.display = 'block';
+  document.getElementById('itemsContainer').style.display = 'none';
+}
+
+function hideLoader() {
+  document.getElementById('loader').style.display = 'none';
+  document.getElementById('itemsContainer').style.display = 'grid';
+}
+
     function showPopup(message) {
       document.getElementById("popupMessage").textContent = message;
       document.getElementById("customPopup").style.display = "flex";
@@ -334,26 +360,51 @@
       document.getElementById('navLinks').classList.toggle('active');
     }
 
-    function loadAllItems() {
-      db.collection("products").get().then(snapshot => {
-        allItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        displayItems(allItems);
-      }).catch(err => {
-        console.error("❌ Failed to load all items:", err);
-      });
-    }
+    // function loadAllItems() {
+    //   db.collection("products").get().then(snapshot => {
+    //     allItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    //     displayItems(allItems);
+    //   }).catch(err => {
+    //     console.error("❌ Failed to load all items:", err);
+    //   });
+    // }
+         function loadAllItems() {
+  showLoader();
+  db.collection("products").get().then(snapshot => {
+    allItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    displayItems(allItems);
+    hideLoader();
+  }).catch(err => {
+    console.error("❌ Failed to load all items:", err);
+    hideLoader();
+  });
+}
 
-    function loadCategories() {
-      db.collection("categories").get().then(snapshot => {
-        const buttons = snapshot.docs.map(doc => {
-          const data = doc.data();
-          return `<button onclick="loadItems('${data.name}')">${data.name}</button>`;
-        });
-        document.getElementById('categoryButtons').innerHTML = buttons.join('');
-      }).catch(err => {
-        console.error("❌ Failed to load categories:", err);
-      });
-    }
+
+    // function loadCategories() {
+    //   db.collection("categories").get().then(snapshot => {
+    //     const buttons = snapshot.docs.map(doc => {
+    //       const data = doc.data();
+    //       return `<button onclick="loadItems('${data.name}')">${data.name}</button>`;
+    //     });
+    //     document.getElementById('categoryButtons').innerHTML = buttons.join('');
+    //   }).catch(err => {
+    //     console.error("❌ Failed to load categories:", err);
+    //   });
+    // }
+
+       function loadItems(category) {
+  showLoader();
+  db.collection("products").where("category", "==", category).get().then(snapshot => {
+    allItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    displayItems(allItems);
+    hideLoader();
+  }).catch(err => {
+    console.error("❌ Failed to load items:", err);
+    hideLoader();
+  });
+}
+
 
     function loadItems(category) {
       db.collection("products").where("category", "==", category).get().then(snapshot => {
