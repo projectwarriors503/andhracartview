@@ -381,17 +381,35 @@ function hideLoader() {
 }
 
 
+    // function loadCategories() {
+    //   db.collection("categories").get().then(snapshot => {
+    //     const buttons = snapshot.docs.map(doc => {
+    //       const data = doc.data();
+    //       return `<button onclick="loadItems('${data.name}')">${data.name}</button>`;
+    //     });
+    //     document.getElementById('categoryButtons').innerHTML = buttons.join('');
+    //   }).catch(err => {
+    //     console.error("❌ Failed to load categories:", err);
+    //   });
+    // }
+
     function loadCategories() {
-      db.collection("categories").get().then(snapshot => {
-        const buttons = snapshot.docs.map(doc => {
-          const data = doc.data();
-          return `<button onclick="loadItems('${data.name}')">${data.name}</button>`;
-        });
-        document.getElementById('categoryButtons').innerHTML = buttons.join('');
-      }).catch(err => {
-        console.error("❌ Failed to load categories:", err);
-      });
-    }
+  db.collection("categories").get().then(snapshot => {
+    const buttons = [
+      `<button onclick="loadAllItems()">All Items</button>`  // ✅ All Items button
+    ];
+
+    snapshot.docs.forEach(doc => {
+      const data = doc.data();
+      buttons.push(`<button onclick="loadItems('${data.name}')">${data.name}</button>`);
+    });
+
+    document.getElementById('categoryButtons').innerHTML = buttons.join('');
+  }).catch(err => {
+    console.error("❌ Failed to load categories:", err);
+  });
+}
+
 
        function loadItems(category) {
   showLoader();
