@@ -13,14 +13,18 @@
     <style>
         body {
             background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
         }
 
-        .category-card {
+        .category-card,
+        .product-card {
             border: 1px solid #dee2e6;
             border-radius: 10px;
             padding: 15px;
             margin-bottom: 15px;
             background: white;
+            flex-wrap: wrap;
         }
 
         .sidebar {
@@ -28,6 +32,8 @@
             background-color: #343a40;
             color: white;
             padding: 20px;
+            position: sticky;
+            top: 0;
         }
 
         .sidebar a {
@@ -41,7 +47,19 @@
             text-decoration: underline;
         }
 
-        /* this is popup */
+        .product-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            padding: 15px;
+        }
+
+        .product-card img {
+            max-width: 100%;
+            height: auto;
+        }
+
         #customPopup {
             position: fixed;
             top: 0;
@@ -74,9 +92,41 @@
             cursor: pointer;
         }
 
+        /* 🌐 RESPONSIVE STYLES */
         @media (max-width: 768px) {
             .sidebar {
                 height: auto;
+                position: relative;
+                text-align: center;
+            }
+
+            .sidebar a {
+                display: inline-block;
+                margin: 10px 5px;
+            }
+
+            .product-card {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .product-card img {
+                margin-bottom: 10px;
+            }
+
+            .d-flex.gap-3 {
+                flex-direction: column !important;
+                gap: 10px !important;
+                text-align: center;
+            }
+
+            .category-card {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .category-card .btn {
+                margin-top: 10px;
             }
         }
     </style>
