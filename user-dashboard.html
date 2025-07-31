@@ -18,6 +18,7 @@
     .form-control[readonly] {
       background-color: #e9ecef;
     }
+
     /* this is popup */
     #customPopup {
       position: fixed;
@@ -106,7 +107,8 @@
     <div class="card mb-4">
       <div class="card-header d-flex justify-content-between align-items-center">
         <strong>My Cart</strong>
-        <button id="placeOrderBtn" class="btn btn-sm btn-success" onclick="placeOrder()">Place Order (Cash on Delivery)</button>
+        <button id="placeOrderBtn" class="btn btn-sm btn-success" onclick="placeOrder()">Place Order (Cash on
+          Delivery)</button>
       </div>
       <div class="card-body" id="cartItems"></div>
       <div class="card-footer" id="billSummary"></div>
@@ -128,13 +130,10 @@
       try {
         const res = await fetch("https://andhracart.onrender.com/config");
         const config = await res.json();
-
-        // Firebase init
         firebase.initializeApp(config.firebase);
         auth = firebase.auth();
         db = firebase.firestore();
 
-        // Auth state listener
         auth.onAuthStateChanged(user => {
           if (user) {
             currentUser = user;
@@ -147,11 +146,20 @@
         });
 
       } catch (err) {
-        console.error("❌ Failed to load Firebase config:", err);
+        showPopup("Failed to load Firebase config: " + err.message);
       }
     }
 
     loadSecureConfig();
+
+    function showPopup(message) {
+      document.getElementById("popupMessage").textContent = message;
+      document.getElementById("customPopup").style.display = "flex";
+    }
+
+    function closePopup() {
+      document.getElementById("customPopup").style.display = "none";
+    }
 
     function loadProfile() {
       db.collection("users").doc(currentUser.uid).get().then(doc => {
@@ -174,11 +182,16 @@
           .then(() => {
             document.getElementById("userAddress").textContent = address;
             document.getElementById("editAddressForm").classList.add("d-none");
+            showPopup("Address updated successfully.");
+          })
+          .catch(err => {
+            showPopup("Failed to update address: " + err.message);
           });
+      } else {
+        showPopup("Address cannot be empty.");
       }
     }
 
-    // Load cart items with remove buttons and billing summary
     function loadCart() {
       const container = document.getElementById("cartItems");
       const bill = document.getElementById("billSummary");
@@ -193,7 +206,6 @@
 
         if (snapshot.empty) {
           container.innerHTML = `<p class="text-muted">Your cart is empty.</p>`;
-          bill.innerHTML = "";
           placeBtn.disabled = true;
           return;
         }
@@ -202,16 +214,16 @@
           const item = doc.data();
           const docId = doc.id;
           container.innerHTML += `
-            <div class="mb-2 border-bottom pb-2 d-flex align-items-center justify-content-between">
-              <div class="d-flex align-items-center">
-                <img src="${item.imageUrl}" alt="Product" style="height: 50px; width: 50px; object-fit: cover;" class="me-2">
-                <div>
-                  <strong>${item.name}</strong><br>₹${item.price}
-                </div>
+          <div class="mb-2 border-bottom pb-2 d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center">
+              <img src="${item.imageUrl}" alt="Product" style="height: 50px; width: 50px; object-fit: cover;" class="me-2">
+              <div>
+                <strong>${item.name}</strong><br>₹${item.price}
               </div>
-              <button class="btn btn-sm btn-outline-danger" onclick="removeFromCart('${docId}')">Remove</button>
             </div>
-          `;
+            <button class="btn btn-sm btn-outline-danger" onclick="removeFromCart('${docId}')">Remove</button>
+          </div>
+        `;
           subtotal += Number(item.price);
           totalItems++;
         });
@@ -220,22 +232,22 @@
         const total = subtotal + deliveryCharge;
 
         bill.innerHTML = `
-          <p class="mb-1"><strong>Items:</strong> ${totalItems}</p>
-          <p class="mb-1"><strong>Subtotal:</strong> ₹${subtotal}</p>
-          <p class="mb-1"><strong>Delivery (COD):</strong> ₹${deliveryCharge}</p>
-          <h5><strong>Total Payable:</strong> ₹${total}</h5>
-        `;
+        <p class="mb-1"><strong>Items:</strong> ${totalItems}</p>
+        <p class="mb-1"><strong>Subtotal:</strong> ₹${subtotal}</p>
+        <p class="mb-1"><strong>Delivery (COD):</strong> ₹${deliveryCharge}</p>
+        <h5><strong>Total Payable:</strong> ₹${total}</h5>
+      `;
 
         placeBtn.disabled = false;
       });
     }
 
-    // Remove item from cart
     function removeFromCart(itemId) {
       if (confirm("Remove this item from your cart?")) {
         db.collection("carts").doc(currentUser.uid).collection("items").doc(itemId).delete()
           .then(() => {
             loadCart();
+            showPopup("Item removed from cart.");
           })
           .catch(err => {
             showPopup("Error removing item: " + err.message);
@@ -255,6 +267,7 @@
           showPopup("Your cart is empty.");
           return;
         }
+
         const userData = userDoc.data();
         const batch = db.batch();
 
@@ -309,13 +322,13 @@
             : "";
 
           container.innerHTML += `
-            <div class="mb-3 border-bottom pb-2">
-              <img src="${order.imageUrl}" style="height: 50px; width: 50px; object-fit: cover;" class="me-2">
-              <strong>${order.name}</strong> - ₹${order.price} <br>
-              <span class="badge bg-${statusColor} badge-status">${order.status}</span>
-              ${cancelButton}
-            </div>
-          `;
+          <div class="mb-3 border-bottom pb-2">
+            <img src="${order.imageUrl}" style="height: 50px; width: 50px; object-fit: cover;" class="me-2">
+            <strong>${order.name}</strong> - ₹${order.price} <br>
+            <span class="badge bg-${statusColor} badge-status">${order.status}</span>
+            ${cancelButton}
+          </div>
+        `;
         });
       });
     }
@@ -326,6 +339,7 @@
       });
     }
   </script>
+
 </body>
 
 </html>
