@@ -84,11 +84,11 @@
 
 <body>
     <div id="customPopup" style="display: none;">
-    <div id="popupContent">
-      <span id="popupMessage"></span>
-      <button onclick="closePopup()">OK</button>
+        <div id="popupContent">
+            <span id="popupMessage"></span>
+            <button onclick="closePopup()">OK</button>
+        </div>
     </div>
-  </div>
 
     <div class="container-fluid">
         <div class="row">
@@ -204,16 +204,20 @@
                 const div = document.createElement("div");
                 div.className = "product-card d-flex align-items-center justify-content-between";
                 div.innerHTML = `
-                    <div class="d-flex align-items-center gap-3">
-                        <img src="${imageUrl}" width="80" height="80" class="rounded shadow-sm" alt="Product">
-                        <div>
-                            <h6 class="mb-0">${data.name}</h6>
-                            <small>Price: ₹${data.price}</small><br>
-                            <small>Shop ID: ${data.shopId}</small>
-                        </div>
+               <div class="d-flex align-items-center gap-3">
+                 <img src="${imageUrl}" width="80" height="80" class="rounded shadow-sm" alt="Product">
+                    <div>
+                       <h6 class="mb-0">${data.name}</h6>
+                       <small>Price: ₹${data.price}</small><br>
+                       <small>Shop ID: ${data.shopId}</small>
                     </div>
-                    <button class="btn btn-sm btn-danger" onclick="deleteProduct('${doc.id}')">Delete</button>
+                </div>
+                <div>
+                   <button class="btn btn-sm btn-warning me-2" onclick="editProduct('${doc.id}', '${data.name}', '${data.price}', '${data.shopId}')">Edit</button>
+                   <button class="btn btn-sm btn-danger" onclick="deleteProduct('${doc.id}')">Delete</button>
+                </div>
                 `;
+
                 container.appendChild(div);
             });
         }
@@ -267,6 +271,27 @@
 
         // Start everything
         loadSecureConfig();
+
+        function editProduct(id, name, price, shopId) {
+            const newName = prompt("Edit product name:", name);
+            if (newName === null) return;
+
+            const newPrice = prompt("Edit product price:", price);
+            if (newPrice === null) return;
+
+            const newShopId = prompt("Edit shop ID:", shopId);
+            if (newShopId === null) return;
+
+            db.collection("products").doc(id).update({
+                name: newName.trim(),
+                price: parseFloat(newPrice),
+                shopId: newShopId.trim()
+            }).then(() => {
+                showPopup("Product updated successfully");
+                loadProducts();
+            });
+        }
+
     </script>
 </body>
 
