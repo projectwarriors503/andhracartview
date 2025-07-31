@@ -273,7 +273,7 @@
 
         return batch.commit();
       }).then(() => {
-        showPopupt("✅ Order placed with Cash on Delivery!");
+        showPopup("✅ Order placed with Cash on Delivery!");
         loadCart();
         loadOrders();
       }).catch(err => {
