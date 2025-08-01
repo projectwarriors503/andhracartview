@@ -155,15 +155,30 @@
           <h5>Add New Product</h5>
           <form id="addProductForm">
             <div class="row g-3">
-              <div class="col-md-4"><input type="text" class="form-control" placeholder="Product Name" id="productName" required></div>
-              <div class="col-md-4"><input type="number" class="form-control" placeholder="Price" id="productPrice" required></div>
+              <div class="col-md-4"><input type="text" class="form-control" placeholder="Product Name" id="productName"
+                  required></div>
+              <div class="col-md-4"><input type="number" class="form-control" placeholder="Price" id="productPrice"
+                  required></div>
               <div class="col-md-4">
                 <select id="productCategory" class="form-select" required>
                   <option value="">Select Category</option>
                 </select>
               </div>
-              <div class="col-md-6"><input type="file" class="form-control" id="productImageFile" accept="image/*" required></div>
-              <div class="col-md-6"><input type="text" class="form-control" placeholder="Description" id="productDesc" required></div>
+              <div class="col-md-6"><input type="file" class="form-control" id="productImageFile" accept="image/*"
+                  required></div>
+              <div class="col-md-6"><input type="text" class="form-control" placeholder="Description" id="productDesc"
+                  required></div>
+              <div class="col-md-6">
+                <select class="form-select" id="productRating" required>
+                  <option value="">Select Rating</option>
+                  <option value="1">⭐ 1</option>
+                  <option value="2">⭐⭐ 2</option>
+                  <option value="3">⭐⭐⭐ 3</option>
+                  <option value="4">⭐⭐⭐⭐ 4</option>
+                  <option value="5">⭐⭐⭐⭐⭐ 5</option>
+                </select>
+              </div>
+
               <div class="col-12"><button class="btn btn-primary" type="submit">Add Product</button></div>
             </div>
           </form>
@@ -250,14 +265,18 @@
       const imageUrl = await uploadImageToSupabase(file);
       if (!imageUrl) return;
 
+      
+
       const data = {
         name: productName.value,
         price: Number(productPrice.value),
         category: productCategory.value,
         imageUrl,
         description: productDesc.value,
-        shopOwnerId: currentUserId
+        shopOwnerId: currentUserId,
+        rating: Number(document.getElementById("productRating").value)
       };
+
 
       await db.collection("products").add(data);
       showPopup("Product added!");

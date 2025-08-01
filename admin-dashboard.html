@@ -263,7 +263,8 @@
                     </div>
                 </div>
                 <div>
-                   <button class="btn btn-sm btn-warning me-2" onclick="editProduct('${doc.id}', '${data.name}', '${data.price}', '${data.shopId}')">Edit</button>
+                   <button class="btn btn-sm btn-warning me-2" onclick="editProduct('${doc.id}', '${data.name}', '${data.price}', '${data.shopId}', ${data.rating || 0})"
+">Edit</button>
                    <button class="btn btn-sm btn-danger" onclick="deleteProduct('${doc.id}')">Delete</button>
                 </div>
                 `;
@@ -322,25 +323,28 @@
         // Start everything
         loadSecureConfig();
 
-        function editProduct(id, name, price, shopId) {
+        function editProduct(id, name, price, shopId, rating = 0) {
             const newName = prompt("Edit product name:", name);
             if (newName === null) return;
-
             const newPrice = prompt("Edit product price:", price);
             if (newPrice === null) return;
-
             const newShopId = prompt("Edit shop ID:", shopId);
             if (newShopId === null) return;
+            const newRating = prompt("Edit rating (1–5 stars):", rating);
+            if (newRating === null || isNaN(newRating)) return;
+
 
             db.collection("products").doc(id).update({
                 name: newName.trim(),
                 price: parseFloat(newPrice),
-                shopId: newShopId.trim()
+                shopId: newShopId.trim(),
+                rating: parseInt(newRating)
             }).then(() => {
                 showPopup("Product updated successfully");
                 loadProducts();
             });
         }
+
 
     </script>
 </body>
