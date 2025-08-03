@@ -340,24 +340,49 @@
             : "";
 
           const rating = order.rating || 0;
-
           container.innerHTML += `
   <div class="mb-3 border-bottom pb-2">
     <img src="${order.imageUrl}" style="height: 50px; width: 50px; object-fit: cover;" class="me-2">
-    <strong>${order.name}</strong> - ₹${order.price} <br>
+    <strong>${order.name}</strong> - ₹${order.price}<br>
     <span class="badge bg-${statusColor} badge-status">${order.status}</span>
     ${cancelButton}
-    <div class="star-rating mt-1" data-id="${orderId}">
-      ${[1, 2, 3, 4, 5].map(i => `
-        <span class="star ${i <= rating ? 'active' : ''}" data-star="${i}">&#9733;</span>
-      `).join('')}
-    </div>
+    ${createStarRatingHTML(rating, orderId)}
   </div>
 `;
+
 
         });
       });
     }
+    document.addEventListener('click', function (e) {
+      if (e.target.closest('.star')) {
+        const clickedStar = e.target.closest('.star');
+        const rating = parseInt(clickedStar.dataset.star);
+        const orderId = clickedStar.closest('.star-rating').dataset.id;
+
+        db.collection("orders").doc(orderId).update({ rating }).then(() => {
+          showPopup("Rating submitted!");
+          loadOrders(); // Refresh the view
+        });
+      }
+    });
+
+
+    function createStarRatingHTML(rating, orderId) {
+      let html = `<div class="star-rating" data-id="${orderId}">`;
+
+      for (let i = 1; i <= 5; i++) {
+        html += `
+      <svg class="star" data-star="${i}" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="${i <= rating ? '#FFD700' : '#ccc'}">
+        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/>
+      </svg>
+    `;
+      }
+
+      html += `</div>`;
+      return html;
+    }
+
 
     function logout() {
       auth.signOut().then(() => {
