@@ -92,6 +92,23 @@
             cursor: pointer;
         }
 
+        .star-rating {
+            display: flex;
+            direction: ltr;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        .star {
+            color: #ddd;
+            transition: color 0.2s;
+        }
+
+        .star.active {
+            color: gold;
+        }
+
+
         /* 🌐 RESPONSIVE STYLES */
         @media (max-width: 768px) {
             .sidebar {
@@ -259,7 +276,12 @@
                     <div>
                        <h6 class="mb-0">${data.name}</h6>
                        <small>Price: ₹${data.price}</small><br>
-                       <small>Shop ID: ${data.shopId}</small>
+                       <small>Shop ID: ${data.shopId}</small><br>
+                         <div class="star-rating" data-id="${doc.id}">
+                         ${[1, 2, 3, 4, 5].map(i => `
+                         <span class="star ${i <= (data.rating || 0) ? 'active' : ''}" data-star="${i}">&#9733;</span>
+                         `).join('')}
+                         </div>
                     </div>
                 </div>
                 <div>
@@ -344,6 +366,19 @@
                 loadProducts();
             });
         }
+
+        document.addEventListener('click', function (e) {
+            if (e.target.classList.contains('star')) {
+                const productId = e.target.closest('.star-rating').dataset.id;
+                const newRating = parseInt(e.target.dataset.star);
+
+                // Save to Firestore
+                db.collection("products").doc(productId).update({ rating: newRating }).then(() => {
+                    showPopup("Rating updated");
+                    loadProducts(); // reload to reflect stars
+                });
+            }
+        });
 
 
     </script>
