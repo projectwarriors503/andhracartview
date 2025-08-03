@@ -51,6 +51,21 @@
       border-radius: 5px;
       cursor: pointer;
     }
+
+    .star-rating {
+      display: inline-flex;
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+
+    .star {
+      color: #ccc;
+      transition: color 0.2s;
+    }
+
+    .star.active {
+      color: gold;
+    }
   </style>
 </head>
 
@@ -324,14 +339,22 @@
             ? `<button class='btn btn-sm btn-outline-danger ms-2' onclick='cancelOrder("${orderId}")'>Cancel</button>`
             : "";
 
+          const rating = order.rating || 0;
+
           container.innerHTML += `
-          <div class="mb-3 border-bottom pb-2">
-            <img src="${order.imageUrl}" style="height: 50px; width: 50px; object-fit: cover;" class="me-2">
-            <strong>${order.name}</strong> - ₹${order.price} <br>
-            <span class="badge bg-${statusColor} badge-status">${order.status}</span>
-            ${cancelButton}
-          </div>
-        `;
+  <div class="mb-3 border-bottom pb-2">
+    <img src="${order.imageUrl}" style="height: 50px; width: 50px; object-fit: cover;" class="me-2">
+    <strong>${order.name}</strong> - ₹${order.price} <br>
+    <span class="badge bg-${statusColor} badge-status">${order.status}</span>
+    ${cancelButton}
+    <div class="star-rating mt-1" data-id="${orderId}">
+      ${[1, 2, 3, 4, 5].map(i => `
+        <span class="star ${i <= rating ? 'active' : ''}" data-star="${i}">&#9733;</span>
+      `).join('')}
+    </div>
+  </div>
+`;
+
         });
       });
     }
@@ -341,6 +364,20 @@
         window.location.href = "index.html";
       });
     }
+
+    document.addEventListener('click', function (e) {
+      if (e.target.classList.contains('star')) {
+        const rating = parseInt(e.target.dataset.star);
+        const orderId = e.target.closest('.star-rating').dataset.id;
+
+        db.collection("orders").doc(orderId).update({ rating }).then(() => {
+          showPopup("Thanks for rating!");
+          loadOrders(); // Refresh to show updated stars
+        });
+      }
+    });
+
+
   </script>
 
 </body>
