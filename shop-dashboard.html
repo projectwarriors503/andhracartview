@@ -190,18 +190,6 @@
           <div class="row" id="productList"></div>
         </div>
 
-        <div class="mb-3">
-          <label for="orderStatusFilter" class="form-label">Filter by Status:</label>
-          <select id="orderStatusFilter" class="form-select w-auto d-inline-block" onchange="loadOrders()">
-            <option value="All">All</option>
-            <option value="Pending">Pending</option>
-            <option value="Confirmed">Confirmed</option>
-            <option value="Shipped">Shipped</option>
-            <option value="Delivered">Delivered</option>
-          </select>
-        </div>
-
-
         <!-- Orders List -->
         <div id="ordersSection" style="display: none;">
           <h4 class="mb-3">Orders for Your Products</h4>
@@ -209,6 +197,17 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <div class="mb-3">
+    <label for="orderStatusFilter" class="form-label">Filter by Status:</label>
+    <select id="orderStatusFilter" class="form-select w-auto d-inline-block" onchange="loadOrders()">
+      <option value="All">All</option>
+      <option value="Pending">Pending</option>
+      <option value="Confirmed">Confirmed</option>
+      <option value="Shipped">Shipped</option>
+      <option value="Delivered">Delivered</option>
+    </select>
   </div>
 
   <!-- Script -->
