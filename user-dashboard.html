@@ -231,15 +231,17 @@
           const stars = "⭐".repeat(item.rating || 0);
           container.innerHTML += `
   <div class="mb-2 border-bottom pb-2 d-flex align-items-center justify-content-between">
-    <div class="d-flex align-items-center">
-      <img src="${item.imageUrl}" alt="Product" style="height: 50px; width: 50px; object-fit: cover;" class="me-2">
-      <div>
-        <strong>${item.name}</strong><br>₹${item.price}<br>
-        ${createStarRatingHTML(order.rating || 0, orderId)}
-      </div>
+  <div class="d-flex align-items-center">
+    <img src="${item.imageUrl}" alt="Product" style="height: 50px; width: 50px; object-fit: cover;" class="me-2">
+    <div>
+      <strong>${item.name}</strong><br>
+      ₹${item.price}<br>
+      ${createStarRatingHTML(item.rating || 0, docId)}
     </div>
-    <button class="btn btn-sm btn-outline-danger" onclick="removeFromCart('${docId}')">Remove</button>
   </div>
+  <button class="btn btn-sm btn-outline-danger" onclick="removeFromCart('${docId}')">Remove</button>
+</div>
+
 `;
 
           subtotal += Number(item.price);
