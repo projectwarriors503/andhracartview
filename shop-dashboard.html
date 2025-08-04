@@ -190,6 +190,18 @@
           <div class="row" id="productList"></div>
         </div>
 
+        <div class="mb-3">
+          <label for="orderStatusFilter" class="form-label">Filter by Status:</label>
+          <select id="orderStatusFilter" class="form-select w-auto d-inline-block" onchange="loadOrders()">
+            <option value="All">All</option>
+            <option value="Pending">Pending</option>
+            <option value="Confirmed">Confirmed</option>
+            <option value="Shipped">Shipped</option>
+            <option value="Delivered">Delivered</option>
+          </select>
+        </div>
+
+
         <!-- Orders List -->
         <div id="ordersSection" style="display: none;">
           <h4 class="mb-3">Orders for Your Products</h4>
@@ -265,7 +277,7 @@
       const imageUrl = await uploadImageToSupabase(file);
       if (!imageUrl) return;
 
-      
+
 
       const data = {
         name: productName.value,
@@ -307,10 +319,11 @@
     async function loadOrders() {
       ordersList.innerHTML = "";
       const snapshot = await db.collection("orders").get();
+      const selectedStatus = document.getElementById("orderStatusFilter").value;
 
       for (const docSnap of snapshot.docs) {
         const d = docSnap.data();
-        if (d.shopOwnerId === currentUserId) {
+        if (d.shopOwnerId === currentUserId && (selectedStatus === "All" || d.status === selectedStatus)) {
           let userName = "Unknown";
           try {
             const userDoc = await db.collection("users").doc(d.userId).get();
@@ -322,21 +335,21 @@
           }
 
           ordersList.innerHTML += `
-            <div class="col-md-6 mb-3">
-              <div class="card">
-                <div class="card-body">
-                  <h5>${d.name}</h5>
-                  <p>Price: ₹${d.price}<br>Customer: ${userName}<br>Address: ${d.address}<br>Status: ${d.status}</p>
-                  <select onchange="updateOrderStatus('${docSnap.id}', this.value)">
-                    <option ${d.status === "Pending" ? "selected" : ""}>Pending</option>
-                    <option ${d.status === "Confirmed" ? "selected" : ""}>Confirmed</option>
-                    <option ${d.status === "Shipped" ? "selected" : ""}>Shipped</option>
-                    <option ${d.status === "Delivered" ? "selected" : ""}>Delivered</option>
-                  </select>
-                </div>
-              </div>
+        <div class="col-md-6 mb-3">
+          <div class="card">
+            <div class="card-body">
+              <h5>${d.name}</h5>
+              <p>Price: ₹${d.price}<br>Customer: ${userName}<br>Address: ${d.address}<br>Status: ${d.status}</p>
+              <select onchange="updateOrderStatus('${docSnap.id}', this.value)">
+                <option ${d.status === "Pending" ? "selected" : ""}>Pending</option>
+                <option ${d.status === "Confirmed" ? "selected" : ""}>Confirmed</option>
+                <option ${d.status === "Shipped" ? "selected" : ""}>Shipped</option>
+                <option ${d.status === "Delivered" ? "selected" : ""}>Delivered</option>
+              </select>
             </div>
-          `;
+          </div>
+        </div>
+      `;
         }
       }
     }

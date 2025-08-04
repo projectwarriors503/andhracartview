@@ -235,7 +235,7 @@
       <img src="${item.imageUrl}" alt="Product" style="height: 50px; width: 50px; object-fit: cover;" class="me-2">
       <div>
         <strong>${item.name}</strong><br>₹${item.price}<br>
-        <span style="color: #f4c542;">${stars}</span>
+        ${createStarRatingHTML(order.rating || 0, orderId)}
       </div>
     </div>
     <button class="btn btn-sm btn-outline-danger" onclick="removeFromCart('${docId}')">Remove</button>
@@ -389,6 +389,20 @@
         window.location.href = "index.html";
       });
     }
+
+    function createStarRatingHTML(rating, orderId) {
+      let html = `<div class="star-rating" data-id="${orderId}">`;
+
+      for (let i = 1; i <= 5; i++) {
+        html += `
+      <span class="star ${i <= rating ? 'active' : ''}" data-star="${i}">&#9733;</span>
+    `;
+      }
+
+      html += `</div>`;
+      return html;
+    }
+
 
     document.addEventListener('click', function (e) {
       if (e.target.classList.contains('star')) {
