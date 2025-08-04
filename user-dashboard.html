@@ -296,7 +296,7 @@
             ...item,
             userId: currentUser.uid,
             address: userData.address || "",
-            status: "Pending",
+            status: "Confirmed",
             orderedAt: new Date().toISOString()
           });
           batch.delete(doc.ref);
