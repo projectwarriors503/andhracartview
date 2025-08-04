@@ -301,6 +301,10 @@
     <input type="text" id="searchInput" placeholder="Search items..." oninput="filterItems()">
   </div>
 
+  <div class="category-scroll" id="categoryScroll">
+    <!-- Categories with images will be loaded here -->
+  </div>
+
   <div class="category-buttons" id="categoryButtons">
     <!-- Categories will be loaded here -->
   </div>
@@ -426,20 +430,36 @@
 
     function loadCategories() {
       db.collection("categories").get().then(snapshot => {
-        const buttons = [
-          `<button class="category-btn" onclick="setActiveCategory(this); loadAllItems()">All Items</button>`
-        ];
+        const scrollContainer = document.getElementById('categoryScroll');
+        scrollContainer.innerHTML = '';
+
+        // Add "All Items" at start
+        const allDiv = document.createElement("div");
+        allDiv.className = "category-item";
+        allDiv.innerHTML = `
+      <img src="https://cdn-icons-png.flaticon.com/512/709/709790.png" alt="All">
+      <div>All Items</div>
+    `;
+        allDiv.onclick = () => loadAllItems();
+        scrollContainer.appendChild(allDiv);
 
         snapshot.docs.forEach(doc => {
           const data = doc.data();
-          buttons.push(`<button class="category-btn" onclick="setActiveCategory(this); loadItems('${data.name}')">${data.name}</button>`);
-        });
 
-        document.getElementById('categoryButtons').innerHTML = buttons.join('');
+          const div = document.createElement("div");
+          div.className = "category-item";
+          div.innerHTML = `
+        <img src="${data.imageUrl || 'https://via.placeholder.com/50'}" alt="${data.name}">
+        <div>${data.name}</div>
+      `;
+          div.onclick = () => loadItems(data.name);
+          scrollContainer.appendChild(div);
+        });
       }).catch(err => {
         console.error("❌ Failed to load categories:", err);
       });
     }
+
 
     function setActiveCategory(btn) {
       document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
