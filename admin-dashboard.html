@@ -239,12 +239,24 @@
         <div>
           <strong>${order.name}</strong><br>
           ₹${order.price}<br>
-          <span class="badge bg-${statusColor}">${order.status}</span>
+          <select class="form-select" onchange="updateOrderStatus('${orderId}', this.value)">
+  <option ${order.status === "Pending" ? "selected" : ""}>Pending</option>
+  <option ${order.status === "Confirmed" ? "selected" : ""}>Confirmed</option>
+  <option ${order.status === "Shipped" ? "selected" : ""}>Shipped</option>
+  <option ${order.status === "Delivered" ? "selected" : ""}>Delivered</option>
+</select>
         </div>
       </div>
     `;
             });
         }
+
+        async function updateOrderStatus(orderId, newStatus) {
+            await db.collection("orders").doc(orderId).update({ status: newStatus });
+            showPopup("Order status updated");
+            loadOrders(); // Refresh the list
+        }
+
 
 
         let auth, db;
