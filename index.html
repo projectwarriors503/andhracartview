@@ -392,9 +392,9 @@
               });
 
               db.collection("carts").doc(user.uid).collection("items").get().then(snapshot => {
-                const count = snapshot.size;
-                document.getElementById("cartCount").textContent = `🛒 ${count}`;
+                document.getElementById("cartCount").textContent = snapshot.size; // ✅ only number
               });
+
             }
           });
 
@@ -544,9 +544,11 @@
         dbRef.doc(item.id).set(item).then(() => {
 
           showPopup("✅ Item added to your cart!");
+
           dbRef.get().then(snapshot => {
-            document.getElementById("cartCount").textContent = `🛒 ${snapshot.size}`;
+            document.getElementById("cartCount").textContent = snapshot.size; // ✅ only number
           });
+
         }).catch(err => {
           console.error("❌ Error adding to cart:", err);
         });
