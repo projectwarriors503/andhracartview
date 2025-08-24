@@ -145,6 +145,8 @@
         <a href="#" onclick="showSection('addProductSection')">Add Product</a>
         <a href="#" onclick="showSection('myProductsSection')">My Products</a>
         <a href="#" onclick="showSection('ordersSection')">Orders</a>
+        <a href="#" onclick="showSection('returnsSection')">Returns</a>
+
         <a href="index.html" onclick="logout()">Logout</a>
       </div>
 
@@ -195,6 +197,12 @@
           <h4 class="mb-3">Orders for Your Products</h4>
           <div id="ordersList" class="row"></div>
         </div>
+
+        <div id="returnsSection" style="display:none;">
+          <h4>Return Requests</h4>
+          <div id="returnsList" class="row"></div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -317,41 +325,71 @@
 
     async function loadOrders() {
       ordersList.innerHTML = "";
+      returnsList.innerHTML = ""; // new
+
       const snapshot = await db.collection("orders").get();
       const selectedStatus = document.getElementById("orderStatusFilter").value;
 
       for (const docSnap of snapshot.docs) {
         const d = docSnap.data();
-        if (d.shopOwnerId === currentUserId && (selectedStatus === "All" || d.status === selectedStatus)) {
+        if (d.shopOwnerId === currentUserId) {
           let userName = "Unknown";
           try {
             const userDoc = await db.collection("users").doc(d.userId).get();
-            if (userDoc.exists) {
-              userName = userDoc.data().name;
-            }
+            if (userDoc.exists) userName = userDoc.data().name;
           } catch (err) {
             console.warn("Couldn't fetch user name:", err);
           }
 
-          ordersList.innerHTML += `
-        <div class="col-md-6 mb-3">
-          <div class="card">
-            <div class="card-body">
-              <h5>${d.name}</h5>
-              <p>Price: ₹${d.price}<br>Customer: ${userName}<br>Address: ${d.address}<br>Status: ${d.status}</p>
-              <select onchange="updateOrderStatus('${docSnap.id}', this.value)">
-                <option ${d.status === "Pending" ? "selected" : ""}>Pending</option>
-                <option ${d.status === "Confirmed" ? "selected" : ""}>Confirmed</option>
-                <option ${d.status === "Shipped" ? "selected" : ""}>Shipped</option>
-                <option ${d.status === "Delivered" ? "selected" : ""}>Delivered</option>
-              </select>
+          // ✅ Return Requests go to returnsList
+          if (d.status === "ReturnRequested") {
+            returnsList.innerHTML += `
+          <div class="col-md-6 mb-3">
+            <div class="card border-danger">
+              <div class="card-body">
+                <h5>${d.name}</h5>
+                <p>Price: ₹${d.price}<br>
+                   Customer: ${userName}<br>
+                   Address: ${d.address}<br>
+                   <b>Reason:</b> ${d.returnReason || "Not provided"}
+                </p>
+                <button class="btn btn-success btn-sm" onclick="updateOrderStatus('${docSnap.id}', 'ReturnApproved')">Approve</button>
+                <button class="btn btn-danger btn-sm" onclick="updateOrderStatus('${docSnap.id}', 'ReturnDeclined')">Decline</button>
+              </div>
             </div>
           </div>
-        </div>
-      `;
+        `;
+          }
+          else if (selectedStatus === "All" || d.status === selectedStatus) {
+            // Normal orders
+            ordersList.innerHTML += `
+          <div class="col-md-6 mb-3">
+            <div class="card">
+              <div class="card-body">
+                <h5>${d.name}</h5>
+                <p>Price: ₹${d.price}<br>
+                   Customer: ${userName}<br>
+                   Address: ${d.address}<br>
+                   Status: ${d.status}
+                </p>
+                <select onchange="updateOrderStatus('${docSnap.id}', this.value)">
+                  <option ${d.status === "Pending" ? "selected" : ""}>Pending</option>
+                  <option ${d.status === "Confirmed" ? "selected" : ""}>Confirmed</option>
+                  <option ${d.status === "Shipped" ? "selected" : ""}>Shipped</option>
+                  <option ${d.status === "Delivered" ? "selected" : ""}>Delivered</option>
+                  <option ${d.status === "ReturnRequested" ? "selected" : ""}>ReturnRequested</option>
+                  <option ${d.status === "ReturnApproved" ? "selected" : ""}>ReturnApproved</option>
+                  <option ${d.status === "ReturnDeclined" ? "selected" : ""}>ReturnDeclined</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        `;
+          }
         }
       }
     }
+
 
     async function deleteProduct(id) {
       if (confirm("Delete this product?")) {
