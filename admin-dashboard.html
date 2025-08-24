@@ -1,5 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
+<script>
+    // 🚮 Delete Pending Orders Function
+    async function deletePendingOrders() {
+        const snapshot = await db.collection("orders").where("status", "==", "Pending").get();
+        if (snapshot.empty) {
+            console.log("✅ No pending orders found.");
+            return;
+        }
+
+        let batch = db.batch();
+        snapshot.forEach(doc => {
+            batch.delete(db.collection("orders").doc(doc.id));
+        });
+
+        await batch.commit();
+        console.log("🗑️ All pending orders deleted successfully.");
+        showPopup("All pending orders deleted successfully");
+        loadOrders();
+    }
+
+</script>
 
 <head>
     <meta charset="UTF-8">
