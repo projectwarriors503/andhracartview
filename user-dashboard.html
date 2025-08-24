@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -79,6 +78,26 @@
     </div>
   </div>
 
+  <!-- Return Popup -->
+  <div id="returnPopup"
+    style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:2000;">
+    <div style="background:#fff; padding:20px; border-radius:10px; max-width:400px; width:90%;">
+      <h5>Return Reason</h5>
+      <select id="returnReason" class="form-select mb-2">
+        <option value="Damaged Product">Damaged Product</option>
+        <option value="Color doesn’t match">Color doesn’t match</option>
+        <option value="Size issue">Size issue</option>
+        <option value="Wrong item delivered">Wrong item delivered</option>
+        <option value="Late delivery">Late delivery</option>
+        <option value="Other">Other</option>
+      </select>
+      <input type="text" id="customReason" class="form-control mb-2" placeholder="Enter custom reason (if Other)">
+      <button class="btn btn-success btn-sm" onclick="submitReturn()">Submit</button>
+      <button class="btn btn-secondary btn-sm" onclick="closeReturnPopup()">Cancel</button>
+    </div>
+  </div>
+
+
   <script>
     function showPopup(message) {
       document.getElementById("popupMessage").textContent = message;
@@ -131,106 +150,114 @@
     </div>
 
     <!-- Orders Section -->
+    <!-- Orders Section -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <strong>My Upcoming Orders</strong>
+      </div>
+      <div class="card-body" id="upcomingOrders"></div>
+    </div>
+
     <div class="card">
       <div class="card-header">
-        <strong>My Orders</strong>
+        <strong>My Delivered Orders</strong>
       </div>
-      <div class="card-body" id="orderList"></div>
+      <div class="card-body" id="deliveredOrders"></div>
     </div>
-  </div>
 
-  <script>
-    let auth, db, currentUser;
 
-    async function loadSecureConfig() {
-      try {
-        const res = await fetch("https://andhracart.onrender.com/config");
-        const config = await res.json();
-        firebase.initializeApp(config.firebase);
-        auth = firebase.auth();
-        db = firebase.firestore();
+    <script>
+      let auth, db, currentUser;
 
-        auth.onAuthStateChanged(user => {
-          if (user) {
-            currentUser = user;
-            loadProfile();
-            loadCart();
-            loadOrders();
-          } else {
-            window.location.href = "index.html";
-          }
-        });
+      async function loadSecureConfig() {
+        try {
+          const res = await fetch("https://andhracart.onrender.com/config");
+          const config = await res.json();
+          firebase.initializeApp(config.firebase);
+          auth = firebase.auth();
+          db = firebase.firestore();
 
-      } catch (err) {
-        showPopup("Failed to load Firebase config: " + err.message);
-      }
-    }
-
-    loadSecureConfig();
-
-    function showPopup(message) {
-      document.getElementById("popupMessage").textContent = message;
-      document.getElementById("customPopup").style.display = "flex";
-    }
-
-    function closePopup() {
-      document.getElementById("customPopup").style.display = "none";
-    }
-
-    function loadProfile() {
-      db.collection("users").doc(currentUser.uid).get().then(doc => {
-        const data = doc.data();
-        document.getElementById("userName").textContent = data.name;
-        document.getElementById("userEmail").textContent = data.email;
-        document.getElementById("userPhone").textContent = data.phone || "Not Provided";
-        document.getElementById("userAddress").textContent = data.address || "Not Provided";
-      });
-    }
-
-    function toggleEditAddress() {
-      document.getElementById("editAddressForm").classList.toggle("d-none");
-    }
-
-    function saveAddress() {
-      const address = document.getElementById("addressInput").value;
-      if (address.trim()) {
-        db.collection("users").doc(currentUser.uid).update({ address })
-          .then(() => {
-            document.getElementById("userAddress").textContent = address;
-            document.getElementById("editAddressForm").classList.add("d-none");
-            showPopup("Address updated successfully.");
-          })
-          .catch(err => {
-            showPopup("Failed to update address: " + err.message);
+          auth.onAuthStateChanged(user => {
+            if (user) {
+              currentUser = user;
+              loadProfile();
+              loadCart();
+              loadOrders();
+            } else {
+              window.location.href = "index.html";
+            }
           });
-      } else {
-        showPopup("Address cannot be empty.");
-      }
-    }
 
-    function loadCart() {
-      const container = document.getElementById("cartItems");
-      const bill = document.getElementById("billSummary");
-      const placeBtn = document.getElementById("placeOrderBtn");
-
-      db.collection("carts").doc(currentUser.uid).collection("items").get().then(snapshot => {
-        container.innerHTML = "";
-        bill.innerHTML = "";
-
-        let totalItems = 0;
-        let subtotal = 0;
-
-        if (snapshot.empty) {
-          container.innerHTML = `<p class="text-muted">Your cart is empty.</p>`;
-          placeBtn.disabled = true;
-          return;
+        } catch (err) {
+          showPopup("Failed to load Firebase config: " + err.message);
         }
+      }
 
-        snapshot.forEach(doc => {
-          const item = doc.data();
-          const docId = doc.id;
-          const stars = "⭐".repeat(item.rating || 0);
-          container.innerHTML += `
+      loadSecureConfig();
+
+      function showPopup(message) {
+        document.getElementById("popupMessage").textContent = message;
+        document.getElementById("customPopup").style.display = "flex";
+      }
+
+      function closePopup() {
+        document.getElementById("customPopup").style.display = "none";
+      }
+
+      function loadProfile() {
+        db.collection("users").doc(currentUser.uid).get().then(doc => {
+          const data = doc.data();
+          document.getElementById("userName").textContent = data.name;
+          document.getElementById("userEmail").textContent = data.email;
+          document.getElementById("userPhone").textContent = data.phone || "Not Provided";
+          document.getElementById("userAddress").textContent = data.address || "Not Provided";
+        });
+      }
+
+      function toggleEditAddress() {
+        document.getElementById("editAddressForm").classList.toggle("d-none");
+      }
+
+      function saveAddress() {
+        const address = document.getElementById("addressInput").value;
+        if (address.trim()) {
+          db.collection("users").doc(currentUser.uid).update({ address })
+            .then(() => {
+              document.getElementById("userAddress").textContent = address;
+              document.getElementById("editAddressForm").classList.add("d-none");
+              showPopup("Address updated successfully.");
+            })
+            .catch(err => {
+              showPopup("Failed to update address: " + err.message);
+            });
+        } else {
+          showPopup("Address cannot be empty.");
+        }
+      }
+
+      function loadCart() {
+        const container = document.getElementById("cartItems");
+        const bill = document.getElementById("billSummary");
+        const placeBtn = document.getElementById("placeOrderBtn");
+
+        db.collection("carts").doc(currentUser.uid).collection("items").get().then(snapshot => {
+          container.innerHTML = "";
+          bill.innerHTML = "";
+
+          let totalItems = 0;
+          let subtotal = 0;
+
+          if (snapshot.empty) {
+            container.innerHTML = `<p class="text-muted">Your cart is empty.</p>`;
+            placeBtn.disabled = true;
+            return;
+          }
+
+          snapshot.forEach(doc => {
+            const item = doc.data();
+            const docId = doc.id;
+            const stars = "⭐".repeat(item.rating || 0);
+            container.innerHTML += `
   <div class="mb-2 border-bottom pb-2 d-flex align-items-center justify-content-between">
   <div class="d-flex align-items-center">
     <img src="${item.imageUrl}" alt="Product" style="height: 50px; width: 50px; object-fit: cover;" class="me-2">
@@ -245,182 +272,225 @@
 
 `;
 
-          subtotal += Number(item.price);
-          totalItems++;
-        });
+            subtotal += Number(item.price);
+            totalItems++;
+          });
 
-        const deliveryCharge = 40;
-        const total = subtotal + deliveryCharge;
+          const deliveryCharge = 40;
+          const total = subtotal + deliveryCharge;
 
-        bill.innerHTML = `
+          bill.innerHTML = `
         <p class="mb-1"><strong>Items:</strong> ${totalItems}</p>
         <p class="mb-1"><strong>Subtotal:</strong> ₹${subtotal}</p>
         <p class="mb-1"><strong>Delivery (COD):</strong> ₹${deliveryCharge}</p>
         <h5><strong>Total Payable:</strong> ₹${total}</h5>
       `;
 
-        placeBtn.disabled = false;
-      });
-    }
-
-    function removeFromCart(itemId) {
-      if (confirm("Remove this item from your cart?")) {
-        db.collection("carts").doc(currentUser.uid).collection("items").doc(itemId).delete()
-          .then(() => {
-            loadCart();
-            showPopup("Item removed from cart.");
-          })
-          .catch(err => {
-            showPopup("Error removing item: " + err.message);
-          });
+          placeBtn.disabled = false;
+        });
       }
-    }
 
-    function placeOrder() {
-      const ordersRef = db.collection("orders");
-      const userRef = db.collection("users").doc(currentUser.uid);
-
-      Promise.all([
-        userRef.get(),
-        db.collection("carts").doc(currentUser.uid).collection("items").get()
-      ]).then(([userDoc, cartSnapshot]) => {
-        if (cartSnapshot.empty) {
-          showPopup("Your cart is empty.");
-          return;
+      function removeFromCart(itemId) {
+        if (confirm("Remove this item from your cart?")) {
+          db.collection("carts").doc(currentUser.uid).collection("items").doc(itemId).delete()
+            .then(() => {
+              loadCart();
+              showPopup("Item removed from cart.");
+            })
+            .catch(err => {
+              showPopup("Error removing item: " + err.message);
+            });
         }
+      }
 
-        const userData = userDoc.data();
-        const batch = db.batch();
+      function placeOrder() {
+        const ordersRef = db.collection("orders");
+        const userRef = db.collection("users").doc(currentUser.uid);
 
-        cartSnapshot.forEach(doc => {
-          const item = doc.data();
-          const orderRef = ordersRef.doc();
-          batch.set(orderRef, {
-            ...item,
-            userId: currentUser.uid,
-            address: userData.address || "",
-            status: "Confirmed",
-            orderedAt: new Date().toISOString()
+        Promise.all([
+          userRef.get(),
+          db.collection("carts").doc(currentUser.uid).collection("items").get()
+        ]).then(([userDoc, cartSnapshot]) => {
+          if (cartSnapshot.empty) {
+            showPopup("Your cart is empty.");
+            return;
+          }
+
+          const userData = userDoc.data();
+          const batch = db.batch();
+
+          cartSnapshot.forEach(doc => {
+            const item = doc.data();
+            const orderRef = ordersRef.doc();
+            batch.set(orderRef, {
+              ...item,
+              userId: currentUser.uid,
+              address: userData.address || "",
+              status: "Confirmed",
+              orderedAt: new Date().toISOString()
+            });
+            batch.delete(doc.ref);
           });
-          batch.delete(doc.ref);
-        });
 
-        return batch.commit();
-      }).then(() => {
-        showPopup("✅ Order placed with Cash on Delivery!");
-        loadCart();
-        loadOrders();
-      }).catch(err => {
-        showPopup("Error placing order: " + err.message);
-      });
-    }
-
-    function cancelOrder(orderId) {
-      if (confirm("Are you sure you want to cancel this order?")) {
-        db.collection("orders").doc(orderId).delete().then(() => {
-          showPopup("❌ Order canceled.");
+          return batch.commit();
+        }).then(() => {
+          showPopup("✅ Order placed with Cash on Delivery!");
+          loadCart();
           loadOrders();
+        }).catch(err => {
+          showPopup("Error placing order: " + err.message);
         });
       }
-    }
 
-    function loadOrders() {
-      db.collection("orders").where("userId", "==", currentUser.uid).get().then(snapshot => {
-        const container = document.getElementById("orderList");
-        container.innerHTML = "";
-        snapshot.forEach(doc => {
-          const order = doc.data();
-          const orderId = doc.id;
-          const statusColor = {
-            "Pending": "secondary",
-            "Confirmed": "info",
-            "Shipped": "warning",
-            "Delivered": "success"
-          }[order.status] || "secondary";
+      function cancelOrder(orderId) {
+        if (confirm("Are you sure you want to cancel this order?")) {
+          db.collection("orders").doc(orderId).delete().then(() => {
+            showPopup("❌ Order canceled.");
+            loadOrders();
+          });
+        }
+      }
 
-          const cancelButton = order.status === "Pending"
-            ? `<button class='btn btn-sm btn-outline-danger ms-2' onclick='cancelOrder("${orderId}")'>Cancel</button>`
-            : "";
+      function loadOrders() {
+        db.collection("orders").where("userId", "==", currentUser.uid).get().then(snapshot => {
+          const upcoming = document.getElementById("upcomingOrders");
+          const delivered = document.getElementById("deliveredOrders");
+          upcoming.innerHTML = "";
+          delivered.innerHTML = "";
 
-          const rating = order.rating || 0;
-          container.innerHTML += `
-  <div class="mb-3 border-bottom pb-2">
-    <img src="${order.imageUrl}" style="height: 50px; width: 50px; object-fit: cover;" class="me-2">
-    <strong>${order.name}</strong> - ₹${order.price}<br>
-    <span class="badge bg-${statusColor} badge-status">${order.status}</span>
-    ${cancelButton}
-    ${createStarRatingHTML(rating, orderId)}
-  </div>
-`;
+          snapshot.forEach(doc => {
+            const order = doc.data();
+            const orderId = doc.id;
+            const status = order.status;
 
+            const statusColor = {
+              "Pending": "secondary",
+              "Confirmed": "info",
+              "Shipped": "warning",
+              "Delivered": "success",
+              "ReturnRequested": "danger"
+            }[status] || "secondary";
 
+            const cancelBtn = status === "Pending" ? `<button class="btn btn-sm btn-outline-danger ms-2" onclick="cancelOrder('${orderId}')">Cancel</button>` : "";
+
+            const returnBtn = status === "Delivered"
+              ? `<button class="btn btn-sm btn-outline-warning ms-2" onclick="openReturnPopup('${orderId}')">Return</button>`
+              : "";
+
+            const html = `
+        <div class="mb-3 border-bottom pb-2">
+          <img src="${order.imageUrl}" style="height:50px;width:50px;object-fit:cover;" class="me-2">
+          <strong>${order.name}</strong> - ₹${order.price}<br>
+          <span class="badge bg-${statusColor}">${status}</span>
+          ${cancelBtn} ${returnBtn}
+        </div>
+      `;
+
+            if (status === "Delivered" || status === "ReturnRequested") {
+              delivered.innerHTML += html;
+            } else {
+              upcoming.innerHTML += html;
+            }
+          });
         });
+      }
+
+      document.addEventListener('click', function (e) {
+        if (e.target.closest('.star')) {
+          const clickedStar = e.target.closest('.star');
+          const rating = parseInt(clickedStar.dataset.star);
+          const orderId = clickedStar.closest('.star-rating').dataset.id;
+
+          db.collection("orders").doc(orderId).update({ rating }).then(() => {
+            showPopup("Rating submitted!");
+            loadOrders(); // Refresh the view
+          });
+        }
       });
-    }
-    document.addEventListener('click', function (e) {
-      if (e.target.closest('.star')) {
-        const clickedStar = e.target.closest('.star');
-        const rating = parseInt(clickedStar.dataset.star);
-        const orderId = clickedStar.closest('.star-rating').dataset.id;
-
-        db.collection("orders").doc(orderId).update({ rating }).then(() => {
-          showPopup("Rating submitted!");
-          loadOrders(); // Refresh the view
-        });
-      }
-    });
 
 
-    function createStarRatingHTML(rating, orderId) {
-      let html = `<div class="star-rating" data-id="${orderId}">`;
+      function createStarRatingHTML(rating, orderId) {
+        let html = `<div class="star-rating" data-id="${orderId}">`;
 
-      for (let i = 1; i <= 5; i++) {
-        html += `
+        for (let i = 1; i <= 5; i++) {
+          html += `
       <svg class="star" data-star="${i}" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="${i <= rating ? '#FFD700' : '#ccc'}">
         <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/>
       </svg>
     `;
+        }
+
+        html += `</div>`;
+        return html;
       }
 
-      html += `</div>`;
-      return html;
-    }
 
-
-    function logout() {
-      auth.signOut().then(() => {
-        window.location.href = "index.html";
-      });
-    }
-
-    function createStarRatingHTML(rating, orderId) {
-      let html = `<div class="star-rating" data-id="${orderId}">`;
-
-      for (let i = 1; i <= 5; i++) {
-        html += `
-      <span class="star ${i <= rating ? 'active' : ''}" data-star="${i}">&#9733;</span>
-    `;
-      }
-
-      html += `</div>`;
-      return html;
-    }
-
-
-    document.addEventListener('click', function (e) {
-      if (e.target.classList.contains('star')) {
-        const rating = parseInt(e.target.dataset.star);
-        const orderId = e.target.closest('.star-rating').dataset.id;
-
-        db.collection("orders").doc(orderId).update({ rating }).then(() => {
-          showPopup("Thanks for rating!");
-          loadOrders(); // Refresh to show updated stars
+      function logout() {
+        auth.signOut().then(() => {
+          window.location.href = "index.html";
         });
       }
-    });
+
+      function createStarRatingHTML(rating, orderId) {
+        let html = `<div class="star-rating" data-id="${orderId}">`;
+
+        for (let i = 1; i <= 5; i++) {
+          html += `
+      <span class="star ${i <= rating ? 'active' : ''}" data-star="${i}">&#9733;</span>
+    `;
+        }
+
+        html += `</div>`;
+        return html;
+      }
 
 
-  </script>
+      document.addEventListener('click', function (e) {
+        if (e.target.classList.contains('star')) {
+          const rating = parseInt(e.target.dataset.star);
+          const orderId = e.target.closest('.star-rating').dataset.id;
+
+          db.collection("orders").doc(orderId).update({ rating }).then(() => {
+            showPopup("Thanks for rating!");
+            loadOrders(); // Refresh to show updated stars
+          });
+        }
+      });
+
+
+      let currentReturnOrderId = null;
+
+function openReturnPopup(orderId) {
+  currentReturnOrderId = orderId;
+  document.getElementById("returnPopup").style.display = "flex";
+}
+
+function closeReturnPopup() {
+  document.getElementById("returnPopup").style.display = "none";
+}
+
+function submitReturn() {
+  const reason = document.getElementById("returnReason").value;
+  const custom = document.getElementById("customReason").value.trim();
+  const finalReason = reason === "Other" && custom ? custom : reason;
+
+  if (!finalReason) {
+    alert("Please provide a reason");
+    return;
+  }
+
+  db.collection("orders").doc(currentReturnOrderId).update({
+    status: "ReturnRequested",
+    returnReason: finalReason
+  }).then(() => {
+    closeReturnPopup();
+    showPopup("📦 Return request submitted!");
+    loadOrders();
+  });
+}
+
+
+    </script>
 
 </body>
 
