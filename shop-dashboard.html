@@ -144,8 +144,13 @@
         <h4>Shop Dashboard</h4>
         <a href="#" onclick="showSection('addProductSection')">Add Product</a>
         <a href="#" onclick="showSection('myProductsSection')">My Products</a>
-        <a href="#" onclick="showSection('ordersSection')">Orders</a>
-        <a href="#" onclick="showSection('returnsSection')">Returns</a>
+        <a href="#" onclick="showSection('ordersSection')">
+          Orders <span class="badge bg-primary" id="ordersCount">0</span>
+        </a>
+        <a href="#" onclick="showSection('returnsSection')">
+          Returns <span class="badge bg-danger" id="returnsCount">0</span>
+        </a>
+
 
         <a href="index.html" onclick="logout()">Logout</a>
       </div>
@@ -326,7 +331,10 @@
 
     async function loadOrders() {
       ordersList.innerHTML = "";
-      returnsList.innerHTML = ""; // new
+      returnsList.innerHTML = "";
+
+      let ordersCount = 0;
+      let returnsCount = 0;
 
       const snapshot = await db.collection("orders").get();
       const selectedStatus = document.getElementById("orderStatusFilter").value;
@@ -342,8 +350,9 @@
             console.warn("Couldn't fetch user name:", err);
           }
 
-          // ✅ Return Requests go to returnsList
+          // ✅ Return Requests
           if (d.status === "ReturnRequested") {
+            returnsCount++;
             returnsList.innerHTML += `
           <div class="col-md-6 mb-3">
             <div class="card border-danger">
@@ -361,8 +370,9 @@
           </div>
         `;
           }
+          // ✅ Normal Orders
           else if (selectedStatus === "All" || d.status === selectedStatus) {
-            // Normal orders
+            ordersCount++;
             ordersList.innerHTML += `
           <div class="col-md-6 mb-3">
             <div class="card">
@@ -389,7 +399,12 @@
           }
         }
       }
+
+      // ✅ Update counts in sidebar
+      document.getElementById("ordersCount").textContent = ordersCount;
+      document.getElementById("returnsCount").textContent = returnsCount;
     }
+
 
 
     async function deleteProduct(id) {
