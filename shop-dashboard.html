@@ -342,12 +342,17 @@
       for (const docSnap of snapshot.docs) {
         const d = docSnap.data();
         if (d.shopOwnerId === currentUserId) {
+          // ✅ Fetch user name and phone
           let userName = "Unknown";
+          let userPhone = "N/A";
           try {
             const userDoc = await db.collection("users").doc(d.userId).get();
-            if (userDoc.exists) userName = userDoc.data().name;
+            if (userDoc.exists) {
+              userName = userDoc.data().name;
+              userPhone = userDoc.data().phone || "N/A";
+            }
           } catch (err) {
-            console.warn("Couldn't fetch user name:", err);
+            console.warn("Couldn't fetch user info:", err);
           }
 
           // ✅ Return Requests
@@ -360,6 +365,7 @@
                 <h5>${d.name}</h5>
                 <p>Price: ₹${d.price}<br>
                    Customer: ${userName}<br>
+                   Phone: ${userPhone}<br>
                    Address: ${d.address}<br>
                    <b>Reason:</b> ${d.returnReason || "Not provided"}
                 </p>
@@ -380,6 +386,7 @@
                 <h5>${d.name}</h5>
                 <p>Price: ₹${d.price}<br>
                    Customer: ${userName}<br>
+                   Phone: ${userPhone}<br>
                    Address: ${d.address}<br>
                    Status: ${d.status}
                 </p>
