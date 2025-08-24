@@ -238,6 +238,11 @@
                 const order = docSnap.data();
                 const orderId = docSnap.id;
 
+                // 🚫 Skip return requests here
+                if (order.status === "ReturnRequested") {
+                    continue;
+                }
+
                 // Fetch customer info
                 let userName = "Unknown";
                 let userPhone = "N/A";
@@ -256,49 +261,31 @@
                     "Confirmed": "info",
                     "Shipped": "warning",
                     "Delivered": "success",
-                    "ReturnRequested": "danger",
                     "ReturnApproved": "success",
                     "ReturnDeclined": "danger"
                 }[order.status] || "secondary";
 
-                // Check if return request
-                if (order.status === "ReturnRequested") {
-                    container.innerHTML += `
-            <div class="category-card mb-3 border-danger">
-                <strong>${order.name}</strong><br>
-                Price: ₹${order.price}<br>
-                Customer: ${userName}<br>
-                Phone: ${userPhone}<br>
-                Address: ${order.address}<br>
-                <b>Return Reason:</b> ${order.returnReason || "Not provided"}<br>
-                <button class="btn btn-success btn-sm mt-2" onclick="updateOrderStatus('${orderId}', 'ReturnApproved')">Approve</button>
-                <button class="btn btn-danger btn-sm mt-2" onclick="updateOrderStatus('${orderId}', 'ReturnDeclined')">Decline</button>
-            </div>
-            `;
-                } else {
-                    container.innerHTML += `
-            <div class="category-card mb-3">
-                <strong>${order.name}</strong><br>
-                Price: ₹${order.price}<br>
-                Customer: ${userName}<br>
-                Phone: ${userPhone}<br>
-                Address: ${order.address}<br>
-                Status: <span class="badge bg-${statusColor}">${order.status}</span><br>
-                <select class="form-select w-auto mt-2" onchange="updateOrderStatus('${orderId}', this.value)">
-                    <option ${order.status === "Pending" ? "selected" : ""}>Pending</option>
-                    <option ${order.status === "Confirmed" ? "selected" : ""}>Confirmed</option>
-                    <option ${order.status === "Shipped" ? "selected" : ""}>Shipped</option>
-                    <option ${order.status === "Delivered" ? "selected" : ""}>Delivered</option>
-                    <option ${order.status === "ReturnRequested" ? "selected" : ""}>ReturnRequested</option>
-                    <option ${order.status === "ReturnApproved" ? "selected" : ""}>ReturnApproved</option>
-                    <option ${order.status === "ReturnDeclined" ? "selected" : ""}>ReturnDeclined</option>
-                </select>
-            </div>
-            `;
-                }
+                // Normal orders UI
+                container.innerHTML += `
+        <div class="category-card mb-3">
+            <strong>${order.name}</strong><br>
+            Price: ₹${order.price}<br>
+            Customer: ${userName}<br>
+            Phone: ${userPhone}<br>
+            Address: ${order.address}<br>
+            Status: <span class="badge bg-${statusColor}">${order.status}</span><br>
+            <select class="form-select w-auto mt-2" onchange="updateOrderStatus('${orderId}', this.value)">
+                <option ${order.status === "Pending" ? "selected" : ""}>Pending</option>
+                <option ${order.status === "Confirmed" ? "selected" : ""}>Confirmed</option>
+                <option ${order.status === "Shipped" ? "selected" : ""}>Shipped</option>
+                <option ${order.status === "Delivered" ? "selected" : ""}>Delivered</option>
+                <option ${order.status === "ReturnApproved" ? "selected" : ""}>ReturnApproved</option>
+                <option ${order.status === "ReturnDeclined" ? "selected" : ""}>ReturnDeclined</option>
+            </select>
+        </div>
+        `;
             }
         }
-
 
         async function updateOrderStatus(orderId, newStatus) {
             await db.collection("orders").doc(orderId).update({ status: newStatus });
