@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -241,23 +242,7 @@
 
 </head>
 
-
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-    function showPopup(message) {
-      document.getElementById("popupMessage").textContent = message;
-      document.getElementById("customPopup").style.display = "flex";
-    }
-    function closePopup() {
-      document.getElementById("customPopup").style.display = "none";
-    }
-  });
-
-</script>
-
 <body>
-
-
 
   <!-- Hidden templates for filled and empty stars -->
   <svg id="star-filled-template" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#FFD700"
@@ -372,7 +357,6 @@
           loadCategories();
           loadAllItems();
 
-
           auth.onAuthStateChanged((user) => {
             if (user) {
               document.getElementById("dashLink").style.display = "inline-block";
@@ -385,15 +369,12 @@
                 }
               });
 
-              // 🔄 Instead of get(), use onSnapshot
-              db.collection("carts").doc(user.uid).collection("items")
-                .onSnapshot(snapshot => {
-                  const count = snapshot.size;
-                  document.getElementById("cartCount").textContent = `🛒 ${count}`;
-                });
+              db.collection("carts").doc(user.uid).collection("items").get().then(snapshot => {
+                const count = snapshot.size;
+                document.getElementById("cartCount").textContent = `🛒 ${count}`;
+              });
             }
           });
-
 
         } catch (err) {
           console.error("❌ Failed to load Firebase config:", err);

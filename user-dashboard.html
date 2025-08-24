@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -212,53 +213,54 @@
       const bill = document.getElementById("billSummary");
       const placeBtn = document.getElementById("placeOrderBtn");
 
-      db.collection("carts").doc(currentUser.uid).collection("items")
-        .onSnapshot(snapshot => {
-          container.innerHTML = "";
-          bill.innerHTML = "";
+      db.collection("carts").doc(currentUser.uid).collection("items").get().then(snapshot => {
+        container.innerHTML = "";
+        bill.innerHTML = "";
 
-          let totalItems = 0;
-          let subtotal = 0;
+        let totalItems = 0;
+        let subtotal = 0;
 
-          if (snapshot.empty) {
-            container.innerHTML = `<p class="text-muted">Your cart is empty.</p>`;
-            placeBtn.disabled = true;
-            return;
-          }
+        if (snapshot.empty) {
+          container.innerHTML = `<p class="text-muted">Your cart is empty.</p>`;
+          placeBtn.disabled = true;
+          return;
+        }
 
-          snapshot.forEach(doc => {
-            const item = doc.data();
-            const docId = doc.id;
-            container.innerHTML += `
-        <div class="mb-2 border-bottom pb-2 d-flex align-items-center justify-content-between">
-          <div class="d-flex align-items-center">
-            <img src="${item.imageUrl}" alt="Product" style="height: 50px; width: 50px; object-fit: cover;" class="me-2">
-            <div>
-              <strong>${item.name}</strong><br>
-              ₹${item.price}<br>
-              ${createStarRatingHTML(item.rating || 0, docId)}
-            </div>
-          </div>
-          <button class="btn btn-sm btn-outline-danger" onclick="removeFromCart('${docId}')">Remove</button>
-        </div>
-      `;
-            subtotal += Number(item.price);
-            totalItems++;
-          });
+        snapshot.forEach(doc => {
+          const item = doc.data();
+          const docId = doc.id;
+          const stars = "⭐".repeat(item.rating || 0);
+          container.innerHTML += `
+  <div class="mb-2 border-bottom pb-2 d-flex align-items-center justify-content-between">
+  <div class="d-flex align-items-center">
+    <img src="${item.imageUrl}" alt="Product" style="height: 50px; width: 50px; object-fit: cover;" class="me-2">
+    <div>
+      <strong>${item.name}</strong><br>
+      ₹${item.price}<br>
+      ${createStarRatingHTML(item.rating || 0, docId)}
+    </div>
+  </div>
+  <button class="btn btn-sm btn-outline-danger" onclick="removeFromCart('${docId}')">Remove</button>
+</div>
 
-          const deliveryCharge = 40;
-          const total = subtotal + deliveryCharge;
+`;
 
-          bill.innerHTML = `
-      <p class="mb-1"><strong>Items:</strong> ${totalItems}</p>
-      <p class="mb-1"><strong>Subtotal:</strong> ₹${subtotal}</p>
-      <p class="mb-1"><strong>Delivery (COD):</strong> ₹${deliveryCharge}</p>
-      <h5><strong>Total Payable:</strong> ₹${total}</h5>
-    `;
-
-          placeBtn.disabled = false;
+          subtotal += Number(item.price);
+          totalItems++;
         });
 
+        const deliveryCharge = 40;
+        const total = subtotal + deliveryCharge;
+
+        bill.innerHTML = `
+        <p class="mb-1"><strong>Items:</strong> ${totalItems}</p>
+        <p class="mb-1"><strong>Subtotal:</strong> ₹${subtotal}</p>
+        <p class="mb-1"><strong>Delivery (COD):</strong> ₹${deliveryCharge}</p>
+        <h5><strong>Total Payable:</strong> ₹${total}</h5>
+      `;
+
+        placeBtn.disabled = false;
+      });
     }
 
     function removeFromCart(itemId) {
