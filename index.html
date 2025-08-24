@@ -381,22 +381,27 @@
 
           auth.onAuthStateChanged((user) => {
             if (user) {
-              document.getElementById("dashLink").style.display = "inline-block";
-              document.querySelector('a[href="login.html"]').style.display = "none";
+              const dashLink = document.getElementById("dashLink");
+              const loginLink = document.querySelector('a[href="login.html"]');
+              const userGreeting = document.getElementById("userGreeting");
+
+              if (dashLink) dashLink.style.display = "inline-block";
+              if (loginLink) loginLink.style.display = "none";
 
               db.collection("users").doc(user.uid).get().then(doc => {
-                if (doc.exists) {
+                if (doc.exists && userGreeting) {
                   const name = doc.data().name || "User";
-                  document.getElementById("userGreeting").textContent = `Welcome, ${name} 👋`;
+                  userGreeting.textContent = `Welcome, ${name} 👋`;
                 }
               });
 
               db.collection("carts").doc(user.uid).collection("items").get().then(snapshot => {
-                document.getElementById("cartCount").textContent = snapshot.size; // ✅ only number
+                const cartCount = document.getElementById("cartCount");
+                if (cartCount) cartCount.textContent = snapshot.size;
               });
-
             }
           });
+
 
         } catch (err) {
           console.error("❌ Failed to load Firebase config:", err);
