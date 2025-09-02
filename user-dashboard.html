@@ -97,6 +97,17 @@
     </div>
   </div>
 
+  <!-- Confirm Popup -->
+  <div id="confirmPopup" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+     background:rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:2000;">
+    <div style="background:#fff; padding:20px; border-radius:10px; max-width:350px; text-align:center;">
+      <p id="confirmMessage">Are you sure?</p>
+      <button class="btn btn-danger btn-sm" id="confirmYes">Yes</button>
+      <button class="btn btn-secondary btn-sm" onclick="closeConfirmPopup()">No</button>
+    </div>
+  </div>
+
+
 
   <script>
     function showPopup(message) {
@@ -291,7 +302,7 @@
       }
 
       function removeFromCart(itemId) {
-        if (confirm("Remove this item from your cart?")) {
+        openConfirmPopup("Remove this item from your cart?", () => {
           db.collection("carts").doc(currentUser.uid).collection("items").doc(itemId).delete()
             .then(() => {
               loadCart();
@@ -300,8 +311,9 @@
             .catch(err => {
               showPopup("Error removing item: " + err.message);
             });
-        }
+        });
       }
+
 
       function placeOrder() {
         const ordersRef = db.collection("orders");
@@ -460,34 +472,53 @@
 
       let currentReturnOrderId = null;
 
-function openReturnPopup(orderId) {
-  currentReturnOrderId = orderId;
-  document.getElementById("returnPopup").style.display = "flex";
-}
+      function openReturnPopup(orderId) {
+        currentReturnOrderId = orderId;
+        document.getElementById("returnPopup").style.display = "flex";
+      }
 
-function closeReturnPopup() {
-  document.getElementById("returnPopup").style.display = "none";
-}
+      function closeReturnPopup() {
+        document.getElementById("returnPopup").style.display = "none";
+      }
 
-function submitReturn() {
-  const reason = document.getElementById("returnReason").value;
-  const custom = document.getElementById("customReason").value.trim();
-  const finalReason = reason === "Other" && custom ? custom : reason;
+      function submitReturn() {
+        const reason = document.getElementById("returnReason").value;
+        const custom = document.getElementById("customReason").value.trim();
+        const finalReason = reason === "Other" && custom ? custom : reason;
 
-  if (!finalReason) {
-    alert("Please provide a reason");
-    return;
-  }
+        if (!finalReason) {
+          alert("Please provide a reason");
+          return;
+        }
 
-  db.collection("orders").doc(currentReturnOrderId).update({
-    status: "ReturnRequested",
-    returnReason: finalReason
-  }).then(() => {
-    closeReturnPopup();
-    showPopup("📦 Return request submitted!");
-    loadOrders();
-  });
-}
+        db.collection("orders").doc(currentReturnOrderId).update({
+          status: "ReturnRequested",
+          returnReason: finalReason
+        }).then(() => {
+          closeReturnPopup();
+          showPopup("📦 Return request submitted!");
+          loadOrders();
+        });
+      }
+
+      let confirmAction = null;
+
+      function openConfirmPopup(message, action) {
+        document.getElementById("confirmMessage").textContent = message;
+        document.getElementById("confirmPopup").style.display = "flex";
+        confirmAction = action; // Yes click ayite call avvadaniki
+      }
+
+      function closeConfirmPopup() {
+        document.getElementById("confirmPopup").style.display = "none";
+        confirmAction = null;
+      }
+
+      document.getElementById("confirmYes").addEventListener("click", () => {
+        if (confirmAction) confirmAction();
+        closeConfirmPopup();
+      });
+
 
 
     </script>
