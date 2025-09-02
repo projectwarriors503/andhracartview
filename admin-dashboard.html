@@ -237,6 +237,20 @@
         </div>
     </div>
 
+    <!-- 🔹 Universal Form Popup -->
+    <div id="formPopup" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+ background:rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:2000;">
+        <div style="background:#fff; padding:20px; border-radius:10px; max-width:400px; width:90%;">
+            <h5 id="formTitle">Edit</h5>
+            <div id="formFields"></div>
+            <div class="mt-3 text-end">
+                <button class="btn btn-secondary btn-sm" onclick="closeFormPopup()">Cancel</button>
+                <button class="btn btn-primary btn-sm" id="formSaveBtn">Save</button>
+            </div>
+        </div>
+    </div>
+
+
     <script>
         async function loadOrders() {
             const filter = document.getElementById("orderFilter").value;
@@ -552,6 +566,81 @@
                 });
             }
         });
+
+        let formCallback = null;
+
+        function openFormPopup(title, fields, callback) {
+            document.getElementById("formTitle").textContent = title;
+            const container = document.getElementById("formFields");
+            container.innerHTML = "";
+
+            fields.forEach(f => {
+                container.innerHTML += `
+      <div class="mb-2">
+        <label class="form-label">${f.label}</label>
+        <input type="${f.type || 'text'}" id="${f.id}" class="form-control" value="${f.value || ''}">
+      </div>
+    `;
+            });
+
+            formCallback = callback;
+            document.getElementById("formPopup").style.display = "flex";
+        }
+
+        function closeFormPopup() {
+            document.getElementById("formPopup").style.display = "none";
+            formCallback = null;
+        }
+
+        document.getElementById("formSaveBtn").addEventListener("click", () => {
+            if (formCallback) {
+                // collect values
+                const inputs = document.querySelectorAll("#formFields input");
+                let values = {};
+                inputs.forEach(i => values[i.id] = i.value);
+                formCallback(values);
+            }
+            closeFormPopup();
+        });
+
+        function editPrompt(id, oldName) {
+            openFormPopup("Edit Category", [
+                { id: "categoryName", label: "Category Name", value: oldName }
+            ], (values) => {
+                if (values.categoryName.trim() !== "") {
+                    updateCategory(id, values.categoryName.trim());
+                }
+            });
+        }
+
+        function editPrompt(id, oldName) {
+            openFormPopup("Edit Category", [
+                { id: "categoryName", label: "Category Name", value: oldName }
+            ], (values) => {
+                if (values.categoryName.trim() !== "") {
+                    updateCategory(id, values.categoryName.trim());
+                }
+            });
+        }
+
+        function editProduct(id, name, price, shopId, rating = 0) {
+            openFormPopup("Edit Product", [
+                { id: "productName", label: "Product Name", value: name },
+                { id: "productPrice", label: "Price", type: "number", value: price },
+                { id: "productShopId", label: "Shop ID", value: shopId },
+                { id: "productRating", label: "Rating (1–5)", type: "number", value: rating }
+            ], (values) => {
+                db.collection("products").doc(id).update({
+                    name: values.productName.trim(),
+                    price: parseFloat(values.productPrice),
+                    shopId: values.productShopId.trim(),
+                    rating: parseInt(values.productRating)
+                }).then(() => {
+                    showPopup("Product updated successfully");
+                    loadProducts();
+                });
+            });
+        }
 
 
     </script>
