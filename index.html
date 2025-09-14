@@ -216,30 +216,41 @@
     /* =========================
    🔄 Loading Spinner
 ========================= */
+    /* Modern Bouncing Dots Loader */
     #loadingSpinner {
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 200px;
+      height: 180px;
       margin-top: 40px;
+      gap: 8px;
     }
 
-    .spinner {
-      border: 5px solid #ccc;
-      border-top: 5px solid #2196f3;
+    .dot {
+      width: 12px;
+      height: 12px;
+      background: #2196f3;
       border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      animation: spin 1s linear infinite;
+      animation: bounce 0.6s infinite alternate;
     }
 
-    @keyframes spin {
-      0% {
-        transform: rotate(0deg);
+    .dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes bounce {
+      from {
+        transform: translateY(0);
+        opacity: 0.6;
       }
 
-      100% {
-        transform: rotate(360deg);
+      to {
+        transform: translateY(-12px);
+        opacity: 1;
       }
     }
 
@@ -255,27 +266,32 @@
     /* =========================
    🦴 Skeleton Loader
 ========================= */
+    /* Modern Skeleton with Shimmer */
     .skeleton-card {
-      background: #f0f0f0;
-      border-radius: 8px;
-      padding: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      animation: pulse 1.5s infinite ease-in-out;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 15px;
+      text-align: center;
+    }
+
+    .skeleton-img,
+    .skeleton-text {
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.3s infinite;
     }
 
     .skeleton-img {
       width: 100%;
-      height: 150px;
-      background: #ddd;
+      height: 180px;
       border-radius: 8px;
     }
 
     .skeleton-text {
-      height: 12px;
-      background: #ddd;
-      border-radius: 6px;
+      height: 16px;
+      margin: 10px auto;
+      border-radius: 4px;
     }
 
     .skeleton-text.short {
@@ -286,19 +302,16 @@
       width: 80%;
     }
 
-    @keyframes pulse {
+    @keyframes shimmer {
       0% {
-        background-color: #f0f0f0;
-      }
-
-      50% {
-        background-color: #e0e0e0;
+        background-position: -200% 0;
       }
 
       100% {
-        background-color: #f0f0f0;
+        background-position: 200% 0;
       }
     }
+
 
     /* Skeleton Loader
     .skeleton-card {
@@ -402,6 +415,13 @@
 </head>
 
 <body>
+  <!-- Modern Loader -->
+  <div id="loadingSpinner">
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+  </div>
+
   <!-- Custom Popup -->
   <div id="customPopup" style="display: none;">
     <div id="popupContent">
