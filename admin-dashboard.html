@@ -187,6 +187,7 @@
                 <a href="#" onclick="showSection('userSection')">User List</a>
                 <a href="#" onclick="showSection('orderSection')">Orders</a>
                 <a href="#" onclick="showSection('returnSection')">Return Requests</a>
+                <a href="#" onclick="showSection('deliverySection')">Delivery Partners</a>
 
                 <a href="index.html" onclick="logout()">Logout</a>
             </div>
@@ -231,6 +232,12 @@
                 <div id="returnSection" style="display: none;">
                     <h5>Return Requests</h5>
                     <div id="returnList"></div>
+                </div>
+
+                <!-- Delivery Section -->
+                <div id="deliverySection" style="display:none;">
+                    <h5>Delivery Partners</h5>
+                    <div id="deliveryList"></div>
                 </div>
 
             </div>
@@ -520,14 +527,16 @@
         }
 
         function showSection(sectionId) {
-            document.querySelectorAll('#categorySection, #productSection, #userSection, #orderSection, #returnSection')
+            document.querySelectorAll('#categorySection, #productSection, #userSection, #orderSection, #returnSection, #deliverySection')
                 .forEach(s => s.style.display = 'none');
             document.getElementById(sectionId).style.display = 'block';
 
             if (sectionId === 'productSection') loadProducts();
             if (sectionId === 'userSection') loadUsers();
             if (sectionId === 'orderSection') loadOrders();
-            if (sectionId === 'returnSection') loadReturnRequests(); // load returns
+            if (sectionId === 'returnSection') loadReturnRequests();
+            if (sectionId === 'deliverySection') loadDeliveryPartners(); // 🚚 new
+
         }
 
 
@@ -644,6 +653,59 @@
             });
         }
 
+
+        // Load delivery partners
+        async function loadDeliveryPartners() {
+            const snapshot = await db.collection("users").where("role", "==", "delivery").get();
+            const container = document.getElementById("deliveryList");
+            container.innerHTML = "";
+
+            if (snapshot.empty) {
+                container.innerHTML = "<p class='text-muted'>No delivery partners registered.</p>";
+                return;
+            }
+
+            snapshot.forEach(doc => {
+                const delivery = doc.data();
+                container.innerHTML += `
+      <div class="category-card mb-3">
+        <strong>${delivery.name || "No Name"}</strong><br>
+        ${delivery.email}<br>
+        Phone: ${delivery.phone || "N/A"}<br>
+        <button class="btn btn-sm btn-primary mt-2" onclick="assignOrderToDelivery('${doc.id}')">
+          Assign Order
+        </button>
+      </div>
+    `;
+            });
+        }
+
+        // Assign order to delivery partner
+        async function assignOrderToDelivery(deliveryId) {
+            const snapshot = await db.collection("orders").where("status", "==", "Confirmed").get();
+
+            if (snapshot.empty) {
+                showPopup("No confirmed orders available for assignment.");
+                return;
+            }
+
+            let options = "";
+            snapshot.forEach(doc => {
+                const order = doc.data();
+                options += `<option value="${doc.id}">${order.name} - ₹${order.price}</option>`;
+            });
+
+            openFormPopup("Assign Order", [
+                { id: "orderSelect", label: "Select Order ID", type: "select", value: options }
+            ], async (values) => {
+                const orderId = document.getElementById("orderSelect").value;
+                await db.collection("orders").doc(orderId).update({
+                    deliveryId: deliveryId,
+                    status: "Assigned"
+                });
+                showPopup("✅ Order assigned successfully!");
+            });
+        }
 
     </script>
 </body>
