@@ -213,7 +213,94 @@
       }
     }
 
-    /* Skeleton Loader */
+    /* =========================
+   🔄 Loading Spinner
+========================= */
+    #loadingSpinner {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 200px;
+      margin-top: 40px;
+    }
+
+    .spinner {
+      border: 5px solid #ccc;
+      border-top: 5px solid #2196f3;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Optional "Loading..." text */
+    .loading-text {
+      margin-top: 12px;
+      font-size: 16px;
+      font-weight: 500;
+      color: #555;
+      text-align: center;
+    }
+
+    /* =========================
+   🦴 Skeleton Loader
+========================= */
+    .skeleton-card {
+      background: #f0f0f0;
+      border-radius: 8px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      animation: pulse 1.5s infinite ease-in-out;
+    }
+
+    .skeleton-img {
+      width: 100%;
+      height: 150px;
+      background: #ddd;
+      border-radius: 8px;
+    }
+
+    .skeleton-text {
+      height: 12px;
+      background: #ddd;
+      border-radius: 6px;
+    }
+
+    .skeleton-text.short {
+      width: 40%;
+    }
+
+    .skeleton-text.long {
+      width: 80%;
+    }
+
+    @keyframes pulse {
+      0% {
+        background-color: #f0f0f0;
+      }
+
+      50% {
+        background-color: #e0e0e0;
+      }
+
+      100% {
+        background-color: #f0f0f0;
+      }
+    }
+
+    /* Skeleton Loader
     .skeleton-card {
       background: white;
       border-radius: 10px;
@@ -258,7 +345,34 @@
       }
     }
 
-    .star-rating {
+    /* Spinner */
+    #loadingSpinner {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 200px;
+    }
+
+    .spinner {
+      border: 5px solid #ccc;
+      border-top: 5px solid #2196f3;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    */ .star-rating {
       display: flex;
       gap: 5px;
       cursor: pointer;
@@ -323,6 +437,11 @@
 
   <div class="category-buttons" id="categoryButtons"></div>
 
+  <!-- Spinner shown first -->
+  <div id="loadingSpinner">
+    <div class="spinner"></div>
+  </div>
+
   <div class="items" id="itemsContainer">
     <!-- Skeleton or products will appear here -->
   </div>
@@ -345,6 +464,10 @@
           firebase.initializeApp(config.firebase);
           auth = firebase.auth();
           db = firebase.firestore();
+
+          // ✅ Hide spinner and show skeletons while fetching items
+          document.getElementById("loadingSpinner").style.display = "none";
+          showLoader();
 
           loadCategories();
           loadAllItems();
@@ -397,12 +520,7 @@
       `).join('');
     }
 
-    function hideLoader() {
-      // nothing needed, real items will overwrite skeletons
-    }
-
     function loadAllItems() {
-      showLoader();
       db.collection("products").get().then(snapshot => {
         allItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         displayItems(allItems);
@@ -500,4 +618,5 @@
     }
   </script>
 </body>
+
 </html>
