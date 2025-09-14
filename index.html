@@ -138,7 +138,6 @@
       }
     }
 
-
     /* this is popup */
     #customPopup {
       position: fixed;
@@ -172,7 +171,7 @@
       cursor: pointer;
     }
 
-    /* this botton */
+    /* this bottom nav */
     @media (max-width: 768px) {
       .bottom-nav {
         position: fixed;
@@ -205,22 +204,58 @@
 
       body {
         padding-bottom: 80px;
-        /* Space for bottom buttons */
       }
     }
 
-    /* On wider screens, hide the bottom nav completely */
     @media (min-width: 769px) {
       .bottom-nav {
         display: none;
       }
     }
 
-    /*     loader */
-    #loader p {
-      font-size: 16px;
-      color: #555;
-      margin-top: 10px;
+    /* Skeleton Loader */
+    .skeleton-card {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 15px;
+      text-align: center;
+    }
+
+    .skeleton-img {
+      width: 100%;
+      height: 180px;
+      border-radius: 8px;
+      background: linear-gradient(90deg, #eee 25%, #ddd 50%, #eee 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.2s infinite;
+    }
+
+    .skeleton-text {
+      height: 16px;
+      margin: 10px auto;
+      border-radius: 4px;
+      background: linear-gradient(90deg, #eee 25%, #ddd 50%, #eee 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.2s infinite;
+    }
+
+    .skeleton-text.short {
+      width: 50%;
+    }
+
+    .skeleton-text.long {
+      width: 80%;
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: -200% 0;
+      }
+
+      100% {
+        background-position: 200% 0;
+      }
     }
 
     .star-rating {
@@ -229,12 +264,6 @@
       cursor: pointer;
       justify-content: center;
       margin-top: 5px;
-    }
-
-
-    .star-rating svg {
-      width: 20px;
-      height: 20px;
     }
 
     .cart-icon {
@@ -256,28 +285,9 @@
       font-weight: bold;
     }
   </style>
-
-
 </head>
 
 <body>
-
-  <!-- Hidden templates for filled and empty stars -->
-  <svg id="star-filled-template" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#FFD700"
-    style="display:none;">
-    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z" />
-  </svg>
-
-  <svg id="star-empty-template" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#ccc"
-    style="display:none;">
-    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"
-      fill-opacity="0.4" />
-  </svg>
-
-
-
-
-
   <!-- Custom Popup -->
   <div id="customPopup" style="display: none;">
     <div id="popupContent">
@@ -285,84 +295,42 @@
       <button onclick="closePopup()">OK</button>
     </div>
   </div>
-  <!-- this bottons -->
+
+  <!-- Bottom Nav -->
   <div class="bottom-nav">
     <button onclick="window.location.href='index.html'">🏠 Home</button>
-
     <button onclick="window.location.href='user-dashboard.html'">👤 Profile</button>
   </div>
-
-
-
-
-
-
 
   <header>
     <h1>🛍️ Andhra Cart</h1>
     <span class="menu-toggle" onclick="toggleMenu()">☰</span>
     <div class="nav-links" id="navLinks">
-      <a href="index.html">Home</a>
-      <a href="About.html">About</a>
-      <a href="login.html">Login</a>
-      <a href="user-dashboard.html" id="dashLink" style="display: none;">User Dashboard</a>
+      <a href='/'>Home</a>
+      <a href='/about'>About</a>
+      <a href='/login'>Login</a>
+      <a href='/user-dashboard' id='dashLink' style='display: none;'>User Dashboard</a>
       <span id="userGreeting" style="margin-left: 15px;"></span>
-      <a href="user-dashboard.html" class="cart-icon">
-        🛒
-        <span id="cartCount" class="cart-badge">0</span>
+      <a class='cart-icon' href='/user-dashboard'>
+        🛒 <span id="cartCount" class="cart-badge">0</span>
       </a>
-
-
     </div>
   </header>
-
 
   <div class="search-bar">
     <input type="text" id="searchInput" placeholder="Search items..." oninput="filterItems()">
   </div>
 
-  <div class="category-buttons" id="categoryButtons">
-    <!-- Categories will be loaded here -->
-  </div>
-
-  <div id="loader" style="display: none; text-align: center; padding: 20px;">
-    <img src="https://i.imgur.com/llF5iyg.gif" alt="Loading..." width="50"><br>
-    <p>Please wait, items are loading...</p>
-  </div>
+  <div class="category-buttons" id="categoryButtons"></div>
 
   <div class="items" id="itemsContainer">
-    <!-- Items will be displayed here -->
+    <!-- Skeleton or products will appear here -->
   </div>
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-auth-compat.js"></script>
-
-
-  <script>
-
-
-    function showLoader() {
-      document.getElementById('loader').style.display = 'block';
-      document.getElementById('itemsContainer').style.display = 'none';
-    }
-
-    function hideLoader() {
-      document.getElementById('loader').style.display = 'none';
-      document.getElementById('itemsContainer').style.display = 'grid';
-    }
-
-    function showPopup(message) {
-      document.getElementById("popupMessage").textContent = message;
-      document.getElementById("customPopup").style.display = "flex";
-    }
-
-    function closePopup() {
-      document.getElementById("customPopup").style.display = "none";
-    }
-
-  </script>
 
   <script>
     let db, auth;
@@ -403,68 +371,55 @@
               });
             }
           });
-
-
         } catch (err) {
           console.error("❌ Failed to load Firebase config:", err);
-
-
           showPopup("Backend config loading failed");
-
         }
       }
-
-      loadSecureConfig(); // ✅ Call only once after DOM is ready
+      loadSecureConfig();
     };
 
     function toggleMenu() {
       document.getElementById('navLinks').classList.toggle('active');
     }
 
-    // function loadAllItems() {
-    //   db.collection("products").get().then(snapshot => {
-    //     allItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    //     displayItems(allItems);
-    //   }).catch(err => {
-    //     console.error("❌ Failed to load all items:", err);
-    //   });
-    // }
+    function showLoader() {
+      const container = document.getElementById('itemsContainer');
+      container.style.display = 'grid';
+      container.innerHTML = Array(6).fill(`
+        <div class="skeleton-card">
+          <div class="skeleton-img"></div>
+          <div class="skeleton-text long"></div>
+          <div class="skeleton-text short"></div>
+          <div class="skeleton-text long"></div>
+          <div class="skeleton-text short"></div>
+        </div>
+      `).join('');
+    }
+
+    function hideLoader() {
+      // nothing needed, real items will overwrite skeletons
+    }
+
     function loadAllItems() {
       showLoader();
       db.collection("products").get().then(snapshot => {
         allItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         displayItems(allItems);
-        hideLoader();
       }).catch(err => {
         console.error("❌ Failed to load all items:", err);
-        hideLoader();
       });
     }
-
-
-    // function loadCategories() {
-    //   db.collection("categories").get().then(snapshot => {
-    //     const buttons = snapshot.docs.map(doc => {
-    //       const data = doc.data();
-    //       return `<button onclick="loadItems('${data.name}')">${data.name}</button>`;
-    //     });
-    //     document.getElementById('categoryButtons').innerHTML = buttons.join('');
-    //   }).catch(err => {
-    //     console.error("❌ Failed to load categories:", err);
-    //   });
-    // }
 
     function loadCategories() {
       db.collection("categories").get().then(snapshot => {
         const buttons = [
           `<button class="category-btn" onclick="setActiveCategory(this); loadAllItems()">All Items</button>`
         ];
-
         snapshot.docs.forEach(doc => {
           const data = doc.data();
           buttons.push(`<button class="category-btn" onclick="setActiveCategory(this); loadItems('${data.name}')">${data.name}</button>`);
         });
-
         document.getElementById('categoryButtons').innerHTML = buttons.join('');
       }).catch(err => {
         console.error("❌ Failed to load categories:", err);
@@ -476,61 +431,38 @@
       btn.classList.add('active');
     }
 
-
-
     function loadItems(category) {
       showLoader();
       db.collection("products").where("category", "==", category).get().then(snapshot => {
         allItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         displayItems(allItems);
-        hideLoader();
       }).catch(err => {
         console.error("❌ Failed to load items:", err);
-        hideLoader();
       });
     }
 
-
-    // function loadItems(category) {
-    //   db.collection("products").where("category", "==", category).get().then(snapshot => {
-    //     allItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    //     displayItems(allItems);
-    //   }).catch(err => {
-    //     console.error("❌ Failed to load items:", err);
-    //   });
-    // }
-
     function displayItems(items) {
       const container = document.getElementById('itemsContainer');
-
       if (items.length === 0) {
-        container.innerHTML = `
-      <div style="grid-column: 1 / -1; text-align: center; padding: 30px; font-size: 18px; color: #555;">
-        No items found ❌
-      </div>`;
+        container.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 30px; font-size: 18px; color: #555;">No items found ❌</div>`;
         return;
       }
-
       container.innerHTML = items.map(item => {
         const filledStar = `<svg width="18" height="18" fill="#FFD700" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>`;
         const emptyStar = `<svg width="18" height="18" fill="#ccc" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>`;
-
         const starRating = [...Array(5)].map((_, i) => i < (item.rating || 0) ? filledStar : emptyStar).join('');
-
         return `
-    <div class="item">
-      <img src="${item.imageUrl}" alt="${item.name}" />
-      <h3>${item.name}</h3>
-      <p><strong>₹${item.price}</strong></p>
-      <p>${item.description}</p>
-      <div class="star-rating">${starRating}</div>
-      <button onclick='addToCart("${item.id}")'>Add to Cart</button>
-    </div>
-  `;
+          <div class="item">
+            <img src="${item.imageUrl}" alt="${item.name}" />
+            <h3>${item.name}</h3>
+            <p><strong>₹${item.price}</strong></p>
+            <p>${item.description}</p>
+            <div class="star-rating">${starRating}</div>
+            <button onclick='addToCart("${item.id}")'>Add to Cart</button>
+          </div>
+        `;
       }).join('');
-
     }
-
 
     function filterItems() {
       const query = document.getElementById('searchInput').value.toLowerCase();
@@ -542,27 +474,30 @@
       const item = allItems.find(i => i.id === itemId);
       firebase.auth().onAuthStateChanged(user => {
         if (!user) {
-
           showPopup("Please login to add to cart.");
           window.location.href = "login.html";
           return;
         }
         const dbRef = firebase.firestore().collection("carts").doc(user.uid).collection("items");
         dbRef.doc(item.id).set(item).then(() => {
-
           showPopup("✅ Item added to your cart!");
-
           dbRef.get().then(snapshot => {
-            document.getElementById("cartCount").textContent = snapshot.size; // ✅ only number
+            document.getElementById("cartCount").textContent = snapshot.size;
           });
-
         }).catch(err => {
           console.error("❌ Error adding to cart:", err);
         });
       });
     }
+
+    function showPopup(message) {
+      document.getElementById("popupMessage").textContent = message;
+      document.getElementById("customPopup").style.display = "flex";
+    }
+
+    function closePopup() {
+      document.getElementById("customPopup").style.display = "none";
+    }
   </script>
-
 </body>
-
 </html>
