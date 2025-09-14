@@ -580,23 +580,37 @@
 
         let formCallback = null;
 
+        //     
+
         function openFormPopup(title, fields, callback) {
             document.getElementById("formTitle").textContent = title;
             const container = document.getElementById("formFields");
             container.innerHTML = "";
 
             fields.forEach(f => {
-                container.innerHTML += `
-      <div class="mb-2">
-        <label class="form-label">${f.label}</label>
-        <input type="${f.type || 'text'}" id="${f.id}" class="form-control" value="${f.value || ''}">
-      </div>
-    `;
+                if (f.type === "select") {
+                    container.innerHTML += `
+              <div class="mb-2">
+                <label class="form-label">${f.label}</label>
+                <select id="${f.id}" class="form-select">
+                  ${f.value}
+                </select>
+              </div>
+            `;
+                } else {
+                    container.innerHTML += `
+              <div class="mb-2">
+                <label class="form-label">${f.label}</label>
+                <input type="${f.type || 'text'}" id="${f.id}" class="form-control" value="${f.value || ''}">
+              </div>
+            `;
+                }
             });
 
             formCallback = callback;
             document.getElementById("formPopup").style.display = "flex";
         }
+
 
         function closeFormPopup() {
             document.getElementById("formPopup").style.display = "none";
