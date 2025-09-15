@@ -86,44 +86,55 @@
       });
     }
 
-    function loadOrders() {
+    async function loadOrders() {
       const container = document.getElementById("ordersContainer");
       container.innerHTML = "<p class='text-muted'>Loading orders...</p>";
 
-      // Only show orders assigned to this delivery partner
-      db.collection("orders")
+      const snapshot = await db.collection("orders")
         .where("deliveryId", "==", currentUser.uid)
-        .get()
-        .then(snapshot => {
-          container.innerHTML = "";
-          if (snapshot.empty) {
-            container.innerHTML = "<p class='text-muted'>No orders assigned yet.</p>";
-            return;
+        .get();
+
+      container.innerHTML = "";
+      if (snapshot.empty) {
+        container.innerHTML = "<p class='text-muted'>No orders assigned yet.</p>";
+        return;
+      }
+
+      for (const docSnap of snapshot.docs) {
+        const order = docSnap.data();
+        const orderId = docSnap.id;
+
+        // 🔎 Fetch customer info
+        let userName = "Unknown", userPhone = "N/A";
+        try {
+          const userDoc = await db.collection("users").doc(order.userId).get();
+          if (userDoc.exists) {
+            userName = userDoc.data().name || "Unknown";
+            userPhone = userDoc.data().phone || "N/A";
           }
+        } catch (e) {
+          console.warn("User info error:", e);
+        }
 
-          snapshot.forEach(doc => {
-            const order = doc.data();
-            const orderId = doc.id;
-
-            container.innerHTML += `
-              <div class="border-bottom pb-2 mb-3">
-                <strong>${order.name}</strong> - ₹${order.price}<br>
-                <small>Customer: ${order.address || "No address"}</small><br>
-                <span class="badge bg-info">${order.status}</span><br>
-                <button class="btn btn-sm btn-outline-secondary status-btn" onclick="updateStatus('${orderId}','PickedUp')">Picked Up</button>
-                <button class="btn btn-sm btn-outline-warning status-btn" onclick="updateStatus('${orderId}','OutForDelivery')">Out for Delivery</button>
-                <button class="btn btn-sm btn-outline-success status-btn" onclick="updateStatus('${orderId}','Delivered')">Delivered</button>
-              </div>
-            `;
-          });
-        });
+        container.innerHTML += `
+          <div class="border-bottom pb-2 mb-3">
+            <strong>${order.name}</strong> - ₹${order.price}<br>
+            <small><b>Customer:</b> ${userName} (${userPhone})</small><br>
+            <small><b>Address:</b> ${order.address || "No address"}</small><br>
+            <span class="badge bg-info">${order.status}</span><br>
+            <button class="btn btn-sm btn-outline-secondary status-btn" onclick="updateStatus('${orderId}','PickedUp')">Picked Up</button>
+            <button class="btn btn-sm btn-outline-warning status-btn" onclick="updateStatus('${orderId}','OutForDelivery')">Out for Delivery</button>
+            <button class="btn btn-sm btn-outline-success status-btn" onclick="updateStatus('${orderId}','Delivered')">Delivered</button>
+          </div>
+        `;
+      }
     }
 
     function updateStatus(orderId, newStatus) {
       db.collection("orders").doc(orderId).update({ status: newStatus })
         .then(() => {
           showPopup("✅ Order status updated to " + newStatus);
-          loadOrders();
+          loadOrders(); // refresh delivery view
         })
         .catch(err => showPopup("Error: " + err.message));
     }
