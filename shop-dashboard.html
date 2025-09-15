@@ -150,10 +150,15 @@
         <a href="#" onclick="showSection('returnsSection')">
           Returns <span class="badge bg-danger" id="returnsCount">0</span>
         </a>
-
-
+        <!-- 🚚 New Delivery Section -->
+        <a href="#" onclick="showSection('deliverySection')">
+          Delivery <span class="badge bg-success" id="deliveryCount">0</span>
+        </a>
         <a href="index.html" onclick="logout()">Logout</a>
       </div>
+
+
+
 
       <!-- Main Content -->
       <div class="col-md-9 p-4">
@@ -218,6 +223,20 @@
           <div id="returnsList" class="row"></div>
         </div>
 
+        <!-- Delivery Section -->
+        <div id="deliverySection" style="display:none;">
+          <h4 class="mb-3">🚚 Delivery Management</h4>
+          <div class="row">
+            <div class="col-md-6">
+              <h6>Available Delivery Partners</h6>
+              <ul id="deliveryPartnersList" class="list-group"></ul>
+            </div>
+            <div class="col-md-6">
+              <h6>Assigned Orders</h6>
+              <div id="assignedOrdersList" class="row"></div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -448,6 +467,70 @@
       const sidebar = document.getElementById("sidebarMenu");
       sidebar.classList.toggle("show");
     }
+
+    async function loadDeliveryPartners() {
+      const list = document.getElementById("deliveryPartnersList");
+      list.innerHTML = "";
+      const snapshot = await db.collection("users").where("role", "==", "delivery").get();
+
+      snapshot.forEach(doc => {
+        const d = doc.data();
+        list.innerHTML += `
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        ${d.name} (${d.phone || "N/A"})
+        <span class="badge bg-secondary">Available</span>
+      </li>
+    `;
+      });
+    }
+
+    async function loadAssignedOrders() {
+      const list = document.getElementById("assignedOrdersList");
+      list.innerHTML = "";
+      let count = 0;
+
+      const snapshot = await db.collection("orders").where("shopOwnerId", "==", currentUserId).get();
+      snapshot.forEach(docSnap => {
+        const d = docSnap.data();
+        if (d.status === "Assigned") {
+          count++;
+          list.innerHTML += `
+        <div class="col-md-12 mb-2">
+          <div class="card">
+            <div class="card-body">
+              <h6>${d.name}</h6>
+              <p>Customer: ${d.address}<br>
+              Delivery Partner: ${d.deliveryId || "Not Assigned"}</p>
+              <select onchange="updateOrderStatus('${docSnap.id}', this.value)">
+                <option ${d.status === "Assigned" ? "selected" : ""}>Assigned</option>
+                <option ${d.status === "Shipped" ? "selected" : ""}>Shipped</option>
+                <option ${d.status === "Delivered" ? "selected" : ""}>Delivered</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      `;
+        }
+      });
+
+      document.getElementById("deliveryCount").textContent = count;
+    }
+
+    function showSection(id) {
+      ["addProductSection", "myProductsSection", "ordersSection", "returnsSection", "deliverySection"]
+        .forEach(sec => document.getElementById(sec).style.display = "none");
+      document.getElementById(id).style.display = "block";
+
+      if (id === "deliverySection") {
+        loadDeliveryPartners();
+        loadAssignedOrders();
+      }
+
+      if (window.innerWidth <= 768) {
+        document.getElementById("sidebarMenu").classList.remove("show");
+      }
+    }
+
   </script>
 </body>
 
