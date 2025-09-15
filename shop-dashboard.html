@@ -409,6 +409,12 @@
                    Address: ${d.address}<br>
                    Status: ${d.status}
                 </p>
+                ${d.status === "Confirmed" ? `
+  <button class="btn btn-sm btn-primary" onclick="assignOrderToDelivery('${docSnap.id}')">
+    Assign Delivery
+  </button>
+` : ""}
+
                 <select onchange="updateOrderStatus('${docSnap.id}', this.value)">
                   <option ${d.status === "Pending" ? "selected" : ""}>Pending</option>
                   <option ${d.status === "Confirmed" ? "selected" : ""}>Confirmed</option>
@@ -530,6 +536,48 @@
         document.getElementById("sidebarMenu").classList.remove("show");
       }
     }
+
+
+    // 🚚 Assign confirmed order to delivery partner
+    async function assignOrderToDelivery(orderId) {
+      // fetch delivery partners
+      const snapshot = await db.collection("users").where("role", "==", "delivery").get();
+      if (snapshot.empty) {
+        showPopup("No delivery partners available.");
+        return;
+      }
+
+      let options = "";
+      snapshot.forEach(doc => {
+        const partner = doc.data();
+        options += `<option value="${doc.id}">${partner.name} (${partner.phone || "N/A"})</option>`;
+      });
+
+      // open selection popup
+      const container = document.createElement("div");
+      container.innerHTML = `
+    <h6>Select Delivery Partner</h6>
+    <select id="deliverySelect" class="form-select mb-2">${options}</select>
+    <button class="btn btn-success btn-sm" id="assignBtn">Assign</button>
+  `;
+
+      document.getElementById("popupMessage").innerHTML = "";
+      document.getElementById("popupMessage").appendChild(container);
+      document.getElementById("customPopup").style.display = "flex";
+
+      document.getElementById("assignBtn").onclick = async () => {
+        const deliveryId = document.getElementById("deliverySelect").value;
+        await db.collection("orders").doc(orderId).update({
+          deliveryId,
+          status: "Assigned"
+        });
+        closePopup();
+        showPopup("✅ Order assigned to delivery partner!");
+        loadOrders();
+        loadAssignedOrders();
+      };
+    }
+
 
   </script>
 </body>
