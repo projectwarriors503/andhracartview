@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,442 +12,298 @@
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
   <script src="https://unpkg.com/@supabase/supabase-js"></script>
   <style>
-    body {
-      background-color: #f8f9fa;
-      padding: 0;
-      margin: 0;
+    body { background-color: #f8f9fa; margin:0; padding:0; }
+    .sidebar { background:#343a40; color:white; padding:20px; min-height:100vh; }
+    .sidebar a { color:white; display:block; margin:10px 0; text-decoration:none; font-weight:bold; }
+    .sidebar a:hover { text-decoration: underline; }
+    .card img { height:200px; object-fit:cover; }
+    @media (max-width:768px){
+      #sidebarMenu{display:none; background:#343a40; padding:15px; z-index:999; position:absolute; top:60px; left:0; width:100%; border-top:1px solid #ccc;}
+      #sidebarMenu.show{display:block;}
+      .card img{height:160px;}
     }
-
-    .sidebar {
-      background-color: #343a40;
-      color: white;
-      padding: 20px;
-      min-height: 100vh;
+    /* popup */
+    #customPopup{
+      position:fixed; top:0; left:0; width:100%; height:100%;
+      background:rgba(0,0,0,0.5); display:none;
+      justify-content:center; align-items:center; z-index:1000;
     }
-
-    .sidebar a {
-      color: white;
-      display: block;
-      margin: 10px 0;
-      text-decoration: none;
-      font-weight: bold;
+    #popupContent{
+      background:white; padding:20px 30px; border-radius:10px;
+      text-align:center; max-width:350px; box-shadow:0 0 15px rgba(0,0,0,0.3);
     }
-
-    .sidebar a:hover {
-      text-decoration: underline;
-    }
-
-    .card img {
-      height: 200px;
-      object-fit: cover;
-    }
-
-    /* Responsive Design */
-    @media (max-width: 768px) {
-      #sidebarMenu {
-        display: none;
-        background-color: #343a40;
-        padding: 15px;
-        z-index: 999;
-        position: absolute;
-        top: 60px;
-        left: 0;
-        width: 100%;
-        border-top: 1px solid #ccc;
-      }
-
-      #sidebarMenu.show {
-        display: block;
-      }
-
-      .card img {
-        height: 160px;
-      }
-
-      .form-control,
-      .form-select {
-        margin-bottom: 10px;
-      }
-
-      .card-body select {
-        width: 100%;
-        margin-top: 10px;
-      }
-    }
-
-    /* this is popup */
-    #customPopup {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-
-    #popupContent {
-      background-color: white;
-      padding: 20px 30px;
-      border-radius: 10px;
-      text-align: center;
-      max-width: 300px;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
-    }
-
-    #popupContent button {
-      margin-top: 15px;
-      padding: 8px 20px;
-      background: #2196f3;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
+    #popupContent button{
+      margin-top:10px; padding:8px 20px; background:#2196f3; color:white;
+      border:none; border-radius:5px; cursor:pointer;
     }
   </style>
 </head>
-
 <body>
 
-  <div id="customPopup" style="display: none;">
-    <div id="popupContent">
-      <span id="popupMessage"></span>
-      <button onclick="closePopup()">OK</button>
-    </div>
+<!-- Popup -->
+<div id="customPopup">
+  <div id="popupContent">
+    <span id="popupMessage"></span><br>
+    <button onclick="closePopup()">Close</button>
   </div>
+</div>
 
-  <script>
-    function showPopup(message) {
-      document.getElementById("popupMessage").textContent = message;
-      document.getElementById("customPopup").style.display = "flex";
-    }
+<script>
+  function showPopup(message) {
+    document.getElementById("popupMessage").innerHTML = message;
+    document.getElementById("customPopup").style.display = "flex";
+  }
+  function closePopup() {
+    document.getElementById("customPopup").style.display = "none";
+  }
+</script>
 
-    function closePopup() {
-      document.getElementById("customPopup").style.display = "none";
-    }
+<div class="container-fluid">
+  <div class="row">
+    <!-- Mobile Toggle -->
+    <button class="btn btn-outline-dark d-md-none m-2" onclick="toggleSidebar()">
+      <i class="fas fa-bars"></i> Menu
+    </button>
 
-  </script>
+    <!-- Sidebar -->
+    <div class="col-md-3 sidebar" id="sidebarMenu">
+      <h4>Shop Dashboard</h4>
+      <a href="#" onclick="showSection('addProductSection')">Add Product</a>
+      <a href="#" onclick="showSection('myProductsSection')">My Products</a>
+      <a href="#" onclick="showSection('ordersSection')">
+        Orders <span class="badge bg-primary" id="ordersCount">0</span>
+      </a>
+      <a href="#" onclick="showSection('returnsSection')">
+        Returns <span class="badge bg-danger" id="returnsCount">0</span>
+      </a>
+      <a href="index.html" onclick="logout()">Logout</a>
+    </div>
 
-  <div class="container-fluid">
-    <div class="row">
-      <!-- Toggle Button for Mobile -->
-      <button class="btn btn-outline-dark d-md-none m-2" onclick="toggleSidebar()" id="menuToggleBtn">
-        <i class="fas fa-bars"></i> Menu
-      </button>
-
-      <!-- Sidebar -->
-      <div class="col-md-3 sidebar" id="sidebarMenu">
-        <h4>Shop Dashboard</h4>
-        <a href="#" onclick="showSection('addProductSection')">Add Product</a>
-        <a href="#" onclick="showSection('myProductsSection')">My Products</a>
-        <a href="#" onclick="showSection('ordersSection')">
-          Orders <span class="badge bg-primary" id="ordersCount">0</span>
-        </a>
-        <a href="#" onclick="showSection('returnsSection')">
-          Returns <span class="badge bg-danger" id="returnsCount">0</span>
-        </a>
-
-
-        <a href="index.html" onclick="logout()">Logout</a>
+    <!-- Main Content -->
+    <div class="col-md-9 p-4">
+      <!-- Add Product -->
+      <div id="addProductSection">
+        <h5>Add New Product</h5>
+        <form id="addProductForm">
+          <div class="row g-3">
+            <div class="col-md-4"><input type="text" class="form-control" placeholder="Product Name" id="productName" required></div>
+            <div class="col-md-4"><input type="number" class="form-control" placeholder="Price" id="productPrice" required></div>
+            <div class="col-md-4">
+              <select id="productCategory" class="form-select" required>
+                <option value="">Select Category</option>
+              </select>
+            </div>
+            <div class="col-md-6"><input type="file" class="form-control" id="productImageFile" accept="image/*" required></div>
+            <div class="col-md-6"><input type="text" class="form-control" placeholder="Description" id="productDesc" required></div>
+            <div class="col-md-6">
+              <select class="form-select" id="productRating" required>
+                <option value="">Select Rating</option>
+                <option value="1">⭐ 1</option>
+                <option value="2">⭐⭐ 2</option>
+                <option value="3">⭐⭐⭐ 3</option>
+                <option value="4">⭐⭐⭐⭐ 4</option>
+                <option value="5">⭐⭐⭐⭐⭐ 5</option>
+              </select>
+            </div>
+            <div class="col-12"><button class="btn btn-primary" type="submit">Add Product</button></div>
+          </div>
+        </form>
       </div>
 
-      <!-- Main Content -->
-      <div class="col-md-9 p-4">
-        <!-- Add Product Form -->
-        <div id="addProductSection">
-          <h5>Add New Product</h5>
-          <form id="addProductForm">
-            <div class="row g-3">
-              <div class="col-md-4"><input type="text" class="form-control" placeholder="Product Name" id="productName"
-                  required></div>
-              <div class="col-md-4"><input type="number" class="form-control" placeholder="Price" id="productPrice"
-                  required></div>
-              <div class="col-md-4">
-                <select id="productCategory" class="form-select" required>
-                  <option value="">Select Category</option>
-                </select>
-              </div>
-              <div class="col-md-6"><input type="file" class="form-control" id="productImageFile" accept="image/*"
-                  required></div>
-              <div class="col-md-6"><input type="text" class="form-control" placeholder="Description" id="productDesc"
-                  required></div>
-              <div class="col-md-6">
-                <select class="form-select" id="productRating" required>
-                  <option value="">Select Rating</option>
-                  <option value="1">⭐ 1</option>
-                  <option value="2">⭐⭐ 2</option>
-                  <option value="3">⭐⭐⭐ 3</option>
-                  <option value="4">⭐⭐⭐⭐ 4</option>
-                  <option value="5">⭐⭐⭐⭐⭐ 5</option>
-                </select>
-              </div>
+      <!-- My Products -->
+      <div id="myProductsSection" style="display:none;">
+        <h5>My Products</h5>
+        <div class="row" id="productList"></div>
+      </div>
 
-              <div class="col-12"><button class="btn btn-primary" type="submit">Add Product</button></div>
-            </div>
-          </form>
+      <!-- Orders -->
+      <div id="ordersSection" style="display:none;">
+        <div class="mb-3">
+          <label for="orderStatusFilter" class="form-label">Filter by Status:</label>
+          <select id="orderStatusFilter" class="form-select w-auto d-inline-block" onchange="loadOrders()">
+            <option value="All">All</option>
+            <option value="Pending">Pending</option>
+            <option value="Confirmed">Confirmed</option>
+            <option value="Assigned">Assigned</option>
+            <option value="Shipped">Shipped</option>
+            <option value="Delivered">Delivered</option>
+          </select>
         </div>
+        <h4 class="mb-3">Orders for Your Products</h4>
+        <div id="ordersList" class="row"></div>
+      </div>
 
-        <!-- My Products -->
-        <div id="myProductsSection" style="display: none;">
-          <h5>My Products</h5>
-          <div class="row" id="productList"></div>
+      <!-- Returns -->
+      <div id="returnsSection" style="display:none;">
+        <h4>Return Requests</h4>
+        <div id="returnsList" class="row"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Script -->
+<script>
+let auth, db, currentUser, supabase, currentUserId=null;
+
+async function loadSecureConfig(){
+  const res = await fetch("https://andhracart.onrender.com/config");
+  const config = await res.json();
+  firebase.initializeApp(config.firebase);
+  auth=firebase.auth();
+  db=firebase.firestore();
+  supabase=window.supabase.createClient(config.supabase.url,config.supabase.anonKey);
+
+  auth.onAuthStateChanged(async(user)=>{
+    if(!user){ window.location.href="/index.html"; }
+    else{
+      currentUser=user; currentUserId=user.uid;
+      await loadCategories(); loadProducts(); loadOrders();
+    }
+  });
+}
+loadSecureConfig();
+
+async function loadCategories(){
+  const categorySelect=document.getElementById("productCategory");
+  categorySelect.innerHTML='<option value="">Select Category</option>';
+  const snapshot=await db.collection("categories").get();
+  snapshot.forEach(doc=>{
+    const d=doc.data(); let opt=document.createElement("option");
+    opt.value=d.name; opt.textContent=d.name; categorySelect.appendChild(opt);
+  });
+}
+
+async function uploadImageToSupabase(file){
+  const filePath=`products/${Date.now()}-${file.name}`;
+  const { error }=await supabase.storage.from('product-images').upload(filePath,file);
+  if(error){ showPopup("Image upload failed"); return null; }
+  const { data:publicURL }=supabase.storage.from('product-images').getPublicUrl(filePath);
+  return publicURL.publicUrl;
+}
+
+document.getElementById("addProductForm").addEventListener("submit",async(e)=>{
+  e.preventDefault();
+  const file=document.getElementById("productImageFile").files[0];
+  const imageUrl=await uploadImageToSupabase(file);
+  if(!imageUrl) return;
+  const data={
+    name:productName.value,
+    price:Number(productPrice.value),
+    category:productCategory.value,
+    imageUrl,
+    description:productDesc.value,
+    shopOwnerId:currentUserId,
+    rating:Number(productRating.value)
+  };
+  await db.collection("products").add(data);
+  showPopup("Product added!"); e.target.reset(); loadProducts();
+});
+
+async function loadProducts(){
+  productList.innerHTML="";
+  const snapshot=await db.collection("products").where("shopOwnerId","==",currentUserId).get();
+  snapshot.forEach(doc=>{
+    const d=doc.data();
+    productList.innerHTML+=`
+      <div class="col-md-4 mb-3">
+        <div class="card">
+          <img src="${d.imageUrl}" class="card-img-top">
+          <div class="card-body">
+            <h5>${d.name}</h5>
+            <p>₹${d.price}<br>${d.description}</p>
+            <button class="btn btn-sm btn-danger" onclick="deleteProduct('${doc.id}')">Delete</button>
+          </div>
         </div>
+      </div>`;
+  });
+}
 
-        <!-- Orders List -->
-        <div id="ordersSection" style="display: none;">
-          <div class="mb-3">
-            <label for="orderStatusFilter" class="form-label">Filter by Status:</label>
-            <select id="orderStatusFilter" class="form-select w-auto d-inline-block" onchange="loadOrders()">
-              <option value="All">All</option>
-              <option value="Pending">Pending</option>
-              <option value="Confirmed">Confirmed</option>
-              <option value="Shipped">Shipped</option>
-              <option value="Delivered">Delivered</option>
+async function loadOrders(){
+  ordersList.innerHTML=""; returnsList.innerHTML="";
+  let ordersCount=0, returnsCount=0;
+  const selectedStatus=document.getElementById("orderStatusFilter").value;
+  const snapshot=await db.collection("orders").get();
+
+  for(const docSnap of snapshot.docs){
+    const d=docSnap.data();
+    if(d.shopOwnerId===currentUserId){
+      let userName="Unknown", userPhone="N/A";
+      try{
+        const userDoc=await db.collection("users").doc(d.userId).get();
+        if(userDoc.exists){ userName=userDoc.data().name; userPhone=userDoc.data().phone||"N/A"; }
+      }catch(e){}
+
+      if(d.status==="ReturnRequested"){
+        returnsCount++;
+        returnsList.innerHTML+=`
+          <div class="col-md-6 mb-3"><div class="card border-danger"><div class="card-body">
+            <h5>${d.name}</h5>
+            <p>Price: ₹${d.price}<br>Customer: ${userName}<br>Phone: ${userPhone}<br>Address: ${d.address}<br>
+            <b>Reason:</b> ${d.returnReason||"Not provided"}</p>
+            <button class="btn btn-success btn-sm" onclick="updateOrderStatus('${docSnap.id}','ReturnApproved')">Approve</button>
+            <button class="btn btn-danger btn-sm" onclick="updateOrderStatus('${docSnap.id}','ReturnDeclined')">Decline</button>
+          </div></div></div>`;
+      }
+      else if(selectedStatus==="All"||d.status===selectedStatus){
+        ordersCount++;
+        ordersList.innerHTML+=`
+          <div class="col-md-6 mb-3"><div class="card"><div class="card-body">
+            <h5>${d.name}</h5>
+            <p>Price: ₹${d.price}<br>Customer: ${userName}<br>Phone: ${userPhone}<br>
+            Address: ${d.address}<br>Status: ${d.status}</p>
+            <select onchange="updateOrderStatus('${docSnap.id}',this.value)">
+              <option ${d.status==="Pending"?"selected":""}>Pending</option>
+              <option ${d.status==="Confirmed"?"selected":""}>Confirmed</option>
+              <option ${d.status==="Assigned"?"selected":""}>Assigned</option>
+              <option ${d.status==="Shipped"?"selected":""}>Shipped</option>
+              <option ${d.status==="Delivered"?"selected":""}>Delivered</option>
             </select>
-          </div>
-          <h4 class="mb-3">Orders for Your Products</h4>
-          <div id="ordersList" class="row"></div>
-        </div>
-
-        <div id="returnsSection" style="display:none;">
-          <h4>Return Requests</h4>
-          <div id="returnsList" class="row"></div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-
-
-
-  <!-- Script -->
-  <script>
-    let auth, db, currentUser, supabase, currentUserId = null;
-
-    async function loadSecureConfig() {
-      try {
-        const res = await fetch("https://andhracart.onrender.com/config");
-        const config = await res.json();
-
-        firebase.initializeApp(config.firebase);
-        auth = firebase.auth();
-        db = firebase.firestore();
-        supabase = window.supabase.createClient(config.supabase.url, config.supabase.anonKey);
-
-        auth.onAuthStateChanged(async (user) => {
-          if (!user) {
-            window.location.href = "/index.html";
-          } else {
-            currentUser = user;
-            currentUserId = user.uid;
-            await loadCategories();
-            loadProducts();
-            loadOrders();
-          }
-        });
-      } catch (err) {
-        console.error("❌ Failed to load Firebase config:", err);
+            ${d.status==="Confirmed" ? `<button class="btn btn-sm btn-primary mt-2" onclick="assignOrderToDelivery('${docSnap.id}')">Assign Delivery</button>` : ""}
+          </div></div></div>`;
       }
     }
+  }
+  document.getElementById("ordersCount").textContent=ordersCount;
+  document.getElementById("returnsCount").textContent=returnsCount;
+}
 
-    loadSecureConfig();
+async function deleteProduct(id){
+  if(confirm("Delete this product?")){ await db.collection("products").doc(id).delete(); loadProducts(); }
+}
+async function updateOrderStatus(id,status){ await db.collection("orders").doc(id).update({status}); loadOrders(); }
 
-    async function loadCategories() {
-      const categorySelect = document.getElementById("productCategory");
-      categorySelect.innerHTML = '<option value="">Select Category</option>';
-      try {
-        const snapshot = await db.collection("categories").get();
-        snapshot.forEach(doc => {
-          const data = doc.data();
-          const option = document.createElement("option");
-          option.value = data.name;
-          option.textContent = data.name;
-          categorySelect.appendChild(option);
-        });
-      } catch (error) {
-        console.error("❌ Error loading categories:", error);
-      }
-    }
+// 🚚 Assign Delivery
+async function assignOrderToDelivery(orderId){
+  const snapshot=await db.collection("users").where("role","==","delivery").get();
+  if(snapshot.empty){ showPopup("No delivery partners available."); return; }
 
-    async function uploadImageToSupabase(file) {
-      const filePath = `products/${Date.now()}-${file.name}`;
-      const { error } = await supabase.storage.from('product-images').upload(filePath, file);
-      if (error) {
-        showPopup("Image upload failed");
-        return null;
-      }
-      const { data: publicURL } = supabase.storage.from('product-images').getPublicUrl(filePath);
-      return publicURL.publicUrl;
-    }
+  let options="";
+  snapshot.forEach(doc=>{ const p=doc.data(); options+=`<option value="${doc.id}">${p.name} (${p.phone||"N/A"})</option>`; });
 
-    document.getElementById("addProductForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const file = document.getElementById("productImageFile").files[0];
-      const imageUrl = await uploadImageToSupabase(file);
-      if (!imageUrl) return;
+  const container=document.createElement("div");
+  container.innerHTML=`
+    <h6>Select Delivery Partner</h6>
+    <select id="deliverySelect" class="form-select mb-2">${options}</select>
+    <button class="btn btn-success btn-sm" id="assignBtn">Assign</button>`;
+  document.getElementById("popupMessage").innerHTML="";
+  document.getElementById("popupMessage").appendChild(container);
+  document.getElementById("customPopup").style.display="flex";
 
+  document.getElementById("assignBtn").onclick=async()=>{
+    const deliveryId=document.getElementById("deliverySelect").value;
+    await db.collection("orders").doc(orderId).update({ deliveryId, status:"Assigned" });
+    closePopup(); showPopup("✅ Order assigned to delivery partner!"); loadOrders();
+  };
+}
 
-
-      const data = {
-        name: productName.value,
-        price: Number(productPrice.value),
-        category: productCategory.value,
-        imageUrl,
-        description: productDesc.value,
-        shopOwnerId: currentUserId,
-        rating: Number(document.getElementById("productRating").value)
-      };
-
-
-      await db.collection("products").add(data);
-      showPopup("Product added!");
-      e.target.reset();
-      loadProducts();
-    });
-
-    async function loadProducts() {
-      productList.innerHTML = "";
-      const snapshot = await db.collection("products").where("shopOwnerId", "==", currentUserId).get();
-      snapshot.forEach(docSnap => {
-        const d = docSnap.data();
-        productList.innerHTML += `
-          <div class="col-md-4 mb-3">
-            <div class="card">
-              <img src="${d.imageUrl}" class="card-img-top">
-              <div class="card-body">
-                <h5 class="card-title">${d.name}</h5>
-                <p class="card-text">₹${d.price}<br>${d.description}</p>
-                <button class="btn btn-sm btn-danger" onclick="deleteProduct('${docSnap.id}')">Delete</button>
-              </div>
-            </div>
-          </div>
-        `;
-      });
-    }
-
-    async function loadOrders() {
-      ordersList.innerHTML = "";
-      returnsList.innerHTML = "";
-
-      let ordersCount = 0;
-      let returnsCount = 0;
-
-      const snapshot = await db.collection("orders").get();
-      const selectedStatus = document.getElementById("orderStatusFilter").value;
-
-      for (const docSnap of snapshot.docs) {
-        const d = docSnap.data();
-        if (d.shopOwnerId === currentUserId) {
-          // ✅ Fetch user name and phone
-          let userName = "Unknown";
-          let userPhone = "N/A";
-          try {
-            const userDoc = await db.collection("users").doc(d.userId).get();
-            if (userDoc.exists) {
-              userName = userDoc.data().name;
-              userPhone = userDoc.data().phone || "N/A";
-            }
-          } catch (err) {
-            console.warn("Couldn't fetch user info:", err);
-          }
-
-          // ✅ Return Requests
-          if (d.status === "ReturnRequested") {
-            returnsCount++;
-            returnsList.innerHTML += `
-          <div class="col-md-6 mb-3">
-            <div class="card border-danger">
-              <div class="card-body">
-                <h5>${d.name}</h5>
-                <p>Price: ₹${d.price}<br>
-                   Customer: ${userName}<br>
-                   Phone: ${userPhone}<br>
-                   Address: ${d.address}<br>
-                   <b>Reason:</b> ${d.returnReason || "Not provided"}
-                </p>
-                <button class="btn btn-success btn-sm" onclick="updateOrderStatus('${docSnap.id}', 'ReturnApproved')">Approve</button>
-                <button class="btn btn-danger btn-sm" onclick="updateOrderStatus('${docSnap.id}', 'ReturnDeclined')">Decline</button>
-              </div>
-            </div>
-          </div>
-        `;
-          }
-          // ✅ Normal Orders
-          else if (selectedStatus === "All" || d.status === selectedStatus) {
-            ordersCount++;
-            ordersList.innerHTML += `
-          <div class="col-md-6 mb-3">
-            <div class="card">
-              <div class="card-body">
-                <h5>${d.name}</h5>
-                <p>Price: ₹${d.price}<br>
-                   Customer: ${userName}<br>
-                   Phone: ${userPhone}<br>
-                   Address: ${d.address}<br>
-                   Status: ${d.status}
-                </p>
-                <select onchange="updateOrderStatus('${docSnap.id}', this.value)">
-                  <option ${d.status === "Pending" ? "selected" : ""}>Pending</option>
-                  <option ${d.status === "Confirmed" ? "selected" : ""}>Confirmed</option>
-                  <option ${d.status === "Shipped" ? "selected" : ""}>Shipped</option>
-                  <option ${d.status === "Delivered" ? "selected" : ""}>Delivered</option>
-                  <option ${d.status === "ReturnRequested" ? "selected" : ""}>ReturnRequested</option>
-                  <option ${d.status === "ReturnApproved" ? "selected" : ""}>ReturnApproved</option>
-                  <option ${d.status === "ReturnDeclined" ? "selected" : ""}>ReturnDeclined</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        `;
-          }
-        }
-      }
-
-      // ✅ Update counts in sidebar
-      document.getElementById("ordersCount").textContent = ordersCount;
-      document.getElementById("returnsCount").textContent = returnsCount;
-    }
-
-
-
-    async function deleteProduct(id) {
-      if (confirm("Delete this product?")) {
-        await db.collection("products").doc(id).delete();
-        loadProducts();
-      }
-    }
-
-    async function updateOrderStatus(id, status) {
-      await db.collection("orders").doc(id).update({ status });
-      loadOrders();
-    }
-
-    function showSection(id) {
-      document.getElementById("addProductSection").style.display = "none";
-      document.getElementById("myProductsSection").style.display = "none";
-      document.getElementById("ordersSection").style.display = "none";
-      document.getElementById(id).style.display = "block";
-
-      // Close sidebar on mobile after selection
-      const sidebar = document.getElementById("sidebarMenu");
-      if (window.innerWidth <= 768) {
-        sidebar.classList.remove("show");
-      }
-    }
-
-    function logout() {
-      auth.signOut();
-      window.location.href = "/index.html";
-    }
-
-    function toggleSidebar() {
-      const sidebar = document.getElementById("sidebarMenu");
-      sidebar.classList.toggle("show");
-    }
-  </script>
+function showSection(id){
+  ["addProductSection","myProductsSection","ordersSection","returnsSection"].forEach(sec=>document.getElementById(sec).style.display="none");
+  document.getElementById(id).style.display="block";
+  if(window.innerWidth<=768) document.getElementById("sidebarMenu").classList.remove("show");
+}
+function logout(){ auth.signOut(); window.location.href="/index.html"; }
+function toggleSidebar(){ document.getElementById("sidebarMenu").classList.toggle("show"); }
+</script>
 </body>
-
 </html>
