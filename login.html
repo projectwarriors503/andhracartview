@@ -178,7 +178,7 @@
               phone,
               role: "user"
             });
-            showPopup("Account created! You can now login.");
+            // showPopup("Account created! You can now login.");
             toggleForm();
           } else {
             const userCredential = await auth.signInWithEmailAndPassword(email, password);
